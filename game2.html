@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Vocabulary Quiz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            align-items: center;
+        }
+
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 0; font-size: 24px; }
+        h2 { margin-top: 5px; font-size: 16px; font-weight: normal; opacity: 0.9; }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .screen { display: none; text-align: center; }
+        .screen.active { display: block; }
+
+        /* Setup Screen */
+        .options-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        .options-group h3 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: #4a90e2;
+        }
+
+        .checkbox-label, .radio-label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .checkbox-label input, .radio-label input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        /* Quiz Screen */
+        #question-counter {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+
+        #question-text {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0 30px;
+            line-height: 1.5;
+            color: #2c3e50;
+            min-height: 60px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover { background-color: #357abd; }
+        button:active { transform: scale(0.98); }
+
+        .option-btn {
+            background-color: #fff;
+            color: #333;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #4a90e2;
+        }
+
+        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        .start-btn, .replay-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        /* Result Screen */
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #4a90e2;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            margin: 20px auto;
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .feedback-text { font-size: 18px; margin-bottom: 20px; }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            width: 100%;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Vocabulary Challenge</h1>
+    <h2>For S1 English Learning</h2>
+</header>
+
+<div class="container">
+    <div id="setup-screen" class="screen active">
+        <div class="options-group">
+            <h3>Select Topics (Type)</h3>
+            <label class="checkbox-label"><input type="checkbox" name="type" value="Body actions" checked> Body actions</label>
+            <label class="checkbox-label"><input type="checkbox" name="type" value="Ways to express our emotions" checked> Ways to express our emotions</label>
+            <label class="checkbox-label"><input type="checkbox" name="type" value="Our feelings and emotions" checked> Our feelings and emotions</label>
+        </div>
+
+        <div class="options-group">
+            <h3>Number of Questions</h3>
+            <label class="radio-label"><input type="radio" name="qCount" value="10" checked> 10 Questions</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="20"> 20 Questions</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="30"> 30 Questions</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="50"> 50 Questions</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="80"> 80 Questions</label>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div id="question-counter">Question 1 / 10</div>
+        <div id="question-text">Definition goes here...</div>
+        <div class="options-grid" id="options-container">
+            </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2>Quiz Completed!</h2>
+        <div class="score-circle">
+            <span id="final-score">0</span>%
+        </div>
+        <p class="feedback-text" id="feedback-msg"></p>
+        <p>Correct Answers: <span id="correct-count">0</span> / <span id="total-count">0</span></p>
+        <button class="replay-btn" onclick="resetGame()">Replay 重玩</button>
+    </div>
+</div>
+
+<footer>
+    Designed by KL思考研究室 (2025DEC)
+</footer>
+
+<script>
+    // Data from the provided Google Sheet
+    const vocabData = [
+        {type: "Body actions", word: "balance", exp: "(v.) to keep your body in a steady position without falling over"},
+        {type: "Body actions", word: "bend", exp: "(v.) to move the top part of your body forward and downwards"},
+        {type: "Body actions", word: "choke", exp: "(v.) to be unable to breathe properly because your throat is blocked or because there is not enough air"},
+        {type: "Body actions", word: "gesture", exp: "(v.) to make a movement with your hands or head to express an idea or a meaning"},
+        {type: "Body actions", word: "hold your breath", exp: "(idiom) to stop breathing for a short time"},
+        {type: "Body actions", word: "lean", exp: "(v.) to move or bend your body in a particular direction; (v.) to support yourself in a sloping position against a wall or other surface"},
+        {type: "Body actions", word: "nod", exp: "(v.) to move your head up and down in order to show agreement or understanding"},
+        {type: "Body actions", word: "pinch", exp: "(v.) to press a part of someone's skin tightly between your finger and thumb so that it hurts"},
+        {type: "Body actions", word: "point", exp: "(v.) to show something to someone by holding up one of your fingers or an object towards it"},
+        {type: "Body actions", word: "punch", exp: "(v.) to hit someone or something with your fist as hard as possible"},
+        {type: "Body actions", word: "snore", exp: "(v.) to breathe noisily through your mouth and nose while you are asleep"},
+        {type: "Body actions", word: "stretch", exp: "(v.) to make your body or a part of your body as straight as possible so that your muscles become long and tight"},
+        {type: "Body actions", word: "swallow", exp: "(v.) to make food or drink go down your throat and towards your stomach"},
+        {type: "Body actions", word: "twist", exp: "(v.) to turn a part of your body around or change your position by turning; (v.) to turn something using your hand"},
+        {type: "Body actions", word: "wander", exp: "(v.) to walk slowly across or around an area, usually without a clear direction or purpose"},
+        {type: "Ways to express our emotions", word: "bark", exp: "(v.) to shout at someone in a forceful manner"},
+        {type: "Ways to express our emotions", word: "beg", exp: "(v.) to ask for something in an urgent way because you want it very much"},
+        {type: "Ways to express our emotions", word: "cheer", exp: "(v.) to shout as a way of showing happiness, praise or support for somebody"},
+        {type: "Ways to express our emotions", word: "clap", exp: "(v.) to hit your hands together several times to show that you approve of or have enjoyed something"},
+        {type: "Ways to express our emotions", word: "fidget", exp: "(v.) to keep moving your body, your hands or your feet, especially when you are bored or nervous"},
+        {type: "Ways to express our emotions", word: "frown", exp: "(v.) to make a worried or confused expression by moving your eyebrows together"},
+        {type: "Ways to express our emotions", word: "laugh", exp: "(v.) to smile and make sounds that shows you are amused"},
+        {type: "Ways to express our emotions", word: "roar", exp: "(v.) to shout or say something in a deep, powerful voice"},
+        {type: "Ways to express our emotions", word: "scream", exp: "(v.) to make a loud high noise with your voice because you are excited, frightened, etc."},
+        {type: "Ways to express our emotions", word: "shake your head", exp: "(exp.) to move your head from side to side as a way to show disapproval or sadness"},
+        {type: "Ways to express our emotions", word: "shout", exp: "(v.) to say something very loudly"},
+        {type: "Ways to express our emotions", word: "sigh", exp: "(v.) to breathe in and out making a long sound, especially because you are tired, disappointed, etc."},
+        {type: "Ways to express our emotions", word: "sob", exp: "(v.) to cry noisily"},
+        {type: "Ways to express our emotions", word: "whoop", exp: "(v.) to shout loudly and happily"},
+        {type: "Ways to express our emotions", word: "yell", exp: "(v.) to shout or say something very loudly, especially when you are excited, angry, frightened, etc."},
+        {type: "Ways to express our emotions", word: "burst out", exp: "(phr. v.) to suddenly start crying or laughing"},
+        {type: "Ways to express our emotions", word: "cheer up", exp: "(phr. v.) to make someone feel less sad"},
+        {type: "Ways to express our emotions", word: "distract", exp: "(v.) to divert someone's attention and prevent him/her from focusing on something"},
+        {type: "Ways to express our emotions", word: "hold back", exp: "(phr. v.) to hide your thoughts and feelings"},
+        {type: "Ways to express our emotions", word: "rant and rave", exp: "(idiom) to shout and complain angrily"},
+        {type: "Ways to express our emotions", word: "release", exp: "(v.) to get rid of negative feelings that you have had for a long time"},
+        {type: "Ways to express our emotions", word: "roll your eyes", exp: "(exp.) to move your eyes upwards to show that you are impatient or annoyed"},
+        {type: "Ways to express our emotions", word: "shiver", exp: "(v.) to shake your body slightly because you are cold or frightened; (n.) a shaking movement that your body makes when you are frightened, cold or ill"},
+        {type: "Ways to express our emotions", word: "shrug", exp: "(v.) to raise your shoulders slightly and momentarily to show that you do not know something or do not care"},
+        {type: "Ways to express our emotions", word: "suppress", exp: "(v.) to refrain yourself from feeling an emotion"},
+        {type: "Our feelings and emotions", word: "annoyed", exp: "(adj.) feeling slightly angry or irritated"},
+        {type: "Our feelings and emotions", word: "guilty", exp: "(adj.) feeling bad or embarrassed because of something you have done"},
+        {type: "Our feelings and emotions", word: "calm", exp: "(adj.) quiet and without strong feeling"},
+        {type: "Our feelings and emotions", word: "confident", exp: "(adj.) feeling sure that you have the ability to do something well or deal with a situation successfully"},
+        {type: "Our feelings and emotions", word: "confused", exp: "(adj.) unable to understand or think clearly what someone is saying or what is happening"},
+        {type: "Our feelings and emotions", word: "contented", exp: "(adj.) feeling happy and satisfied"},
+        {type: "Our feelings and emotions", word: "curious", exp: "(adj.) having a strong desire to know about something"},
+        {type: "Our feelings and emotions", word: "depressed", exp: "(adj.) very sad and without hope"},
+        {type: "Our feelings and emotions", word: "disappointed", exp: "(adj.) unhappy because something you hoped for did not happen"},
+        {type: "Our feelings and emotions", word: "embarrassed", exp: "(adj.) feeling ashamed or uncomfortable in a social situation"},
+        {type: "Our feelings and emotions", word: "fearful", exp: "(adj.) frightened or worried"},
+        {type: "Our feelings and emotions", word: "grateful", exp: "(adj.) feeling that you want to thank someone because he/she has done something kind for you"},
+        {type: "Our feelings and emotions", word: "hopeful", exp: "(adj.) having hope"},
+        {type: "Our feelings and emotions", word: "jealous", exp: "(adj.) feeling angry and unhappy because someone has something that you wish you had"},
+        {type: "Our feelings and emotions", word: "jolly", exp: "(adj.) happy and cheerful"},
+        {type: "Our feelings and emotions", word: "joyful", exp: "(adj.) feeling great pleasure and happiness"},
+        {type: "Our feelings and emotions", word: "negative emotions", exp: "(phr.) any feeling which makes you sad or miserable"},
+        {type: "Our feelings and emotions", word: "nervous", exp: "(adj.) becoming worried and anxious easily"},
+        {type: "Our feelings and emotions", word: "pride", exp: "(n.) a feeling of satisfaction and pleasure in what you have done"},
+        {type: "Our feelings and emotions", word: "relaxed", exp: "(adj.) feeling calm and comfortable"},
+        {type: "Our feelings and emotions", word: "relieved", exp: "(adj.) feeling happy because you are no longer worried about something"},
+        {type: "Our feelings and emotions", word: "smiley", exp: "(adj.) smiling and cheerful"},
+        {type: "Our feelings and emotions", word: "stressed", exp: "(adj.) so worried and tired that you cannot relax"},
+        {type: "Our feelings and emotions", word: "unsettled", exp: "(adj.) worried or excited about something so that you feel upset or nervous"},
+        {type: "Our feelings and emotions", word: "upset", exp: "(adj.) unhappy and worried because something disappointing has happened"},
+        {type: "Our feelings and emotions", word: "worried", exp: "(adj.) unhappy because you keep thinking about problems or unpleasant things that might happen"},
+        {type: "Our feelings and emotions", word: "at ease", exp: "(idiom) feeling confident and relaxed"},
+        {type: "Our feelings and emotions", word: "despair", exp: "(n.) a feeling that you have lost all your hope"},
+        {type: "Our feelings and emotions", word: "discouragement", exp: "(n.) a feeling that you no longer have the confidence or enthusiasm to do something"},
+        {type: "Our feelings and emotions", word: "disgusted", exp: "(adj.) feeling or showing extreme dislike or disapproval for somebody or something"},
+        {type: "Our feelings and emotions", word: "eager", exp: "(adj.) very keen and excited about something that is going to happen"},
+        {type: "Our feelings and emotions", word: "ecstatic", exp: "(adj.) feeling extremely happy"},
+        {type: "Our feelings and emotions", word: "effusive", exp: "(adj.) showing strong excited feelings"},
+        {type: "Our feelings and emotions", word: "enthusiastic", exp: "(adj.) showing a lot of excitement and interest about something"},
+        {type: "Our feelings and emotions", word: "frustrated", exp: "(adj.) feeling upset and impatient because you cannot do or achieve what you want"},
+        {type: "Our feelings and emotions", word: "hostile", exp: "(adj.) very unfriendly or aggressive towards someone and ready to argue or fight with him/her"},
+        {type: "Our feelings and emotions", word: "irritated", exp: "(adj.) feeling annoyed and impatient about something"},
+        {type: "Our feelings and emotions", word: "pessimistic", exp: "(adj.) tending to believe that the worst thing will happen"},
+        {type: "Our feelings and emotions", word: "suspicious", exp: "(adj.) feeling that you are not willing or able to trust someone or something"},
+        {type: "Our feelings and emotions", word: "terror", exp: "(n.) a feeling of extreme fear"}
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let isProcessing = false;
+
+    // Shuffle Array Utility
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        // 1. Get Selected Types
+        const checkboxes = document.querySelectorAll('input[name="type"]:checked');
+        let selectedTypes = Array.from(checkboxes).map(cb => cb.value);
+
+        if (selectedTypes.length === 0) {
+            alert("Please select at least one topic!");
+            return;
+        }
+
+        // 2. Filter Data
+        let filteredData = vocabData.filter(item => selectedTypes.includes(item.type));
+
+        if (filteredData.length < 4) {
+             alert("Not enough words in selected topics to play (Minimum 4 words needed).");
+             return;
+        }
+
+        // 3. Get Question Count
+        const countInput = document.querySelector('input[name="qCount"]:checked');
+        let questionCount = parseInt(countInput.value);
+        if (questionCount > filteredData.length) {
+            questionCount = filteredData.length; // Cap if not enough data
+        }
+
+        // 4. Prepare Questions
+        shuffleArray(filteredData);
+        currentQuestions = filteredData.slice(0, questionCount);
+        
+        // Reset Game State
+        currentIndex = 0;
+        score = 0;
+        showScreen('quiz-screen');
+        loadQuestion();
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function loadQuestion() {
+        if (currentIndex >= currentQuestions.length) {
+            endGame();
+            return;
+        }
+
+        isProcessing = false;
+        const currentQ = currentQuestions[currentIndex];
+        
+        // Update UI
+        document.getElementById('question-counter').innerText = `Question ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('question-text').innerText = currentQ.exp;
+
+        // Generate Options
+        const correctAns = currentQ.word;
+        // Get 3 random wrong answers from the FULL dataset (not just filtered, to add variety, or stick to filtered)
+        // Let's stick to filtered/vocabData to ensure context makes sense, but ensure they are unique
+        let distractors = vocabData
+            .filter(item => item.word !== correctAns)
+            .map(item => item.word);
+        
+        shuffleArray(distractors);
+        let options = distractors.slice(0, 3);
+        options.push(correctAns);
+        shuffleArray(options);
+
+        // Render Buttons
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, correctAns);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        const buttons = document.querySelectorAll('.option-btn');
+        
+        if (selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            // Show correct one
+            buttons.forEach(b => {
+                if (b.innerText === correct) b.classList.add('correct');
+            });
+        }
+
+        // Wait 1.5 seconds then next question
+        setTimeout(() => {
+            currentIndex++;
+            loadQuestion();
+        }, 1500);
+    }
+
+    function endGame() {
+        showScreen('result-screen');
+        const percentage = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('final-score').innerText = percentage;
+        document.getElementById('correct-count').innerText = score;
+        document.getElementById('total-count').innerText = currentQuestions.length;
+
+        let msg = "";
+        if (percentage === 100) msg = "Perfect! Excellent Job! 🌟";
+        else if (percentage >= 80) msg = "Great work! Keep it up! 🎉";
+        else if (percentage >= 60) msg = "Good effort! Practice makes perfect. 💪";
+        else msg = "Don't give up! Try again! 📚";
+        
+        document.getElementById('feedback-msg').innerText = msg;
+    }
+
+    function resetGame() {
+        showScreen('setup-screen');
+    }
+</script>
+
+</body>
+</html>
