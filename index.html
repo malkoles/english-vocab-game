@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中一英文單字測驗</title>
+<style>
+    /* --- 頁面基礎樣式 --- */
+    body {
+        font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+        background-color: #f0f8ff;
+        /* 使用 Flexbox 讓內容垂直置中 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh; /* 確保最小高度為視窗高度 */
+        margin: 0;
+        /* 為 Footer 預留空間的設定 */
+        position: relative;
+        padding-bottom: 50px; 
+        box-sizing: border-box;
+    }
+
+    /* --- 遊戲主容器樣式 --- */
+    .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+        /* 確保在小螢幕上不會貼到頂部 */
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* --- Footer 樣式 (新增) --- */
+    .footer {
+        position: absolute;
+        bottom: 15px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 13px;
+        color: #95a5a6; /* 淺灰色看起來比較專業 */
+    }
+
+    /* --- 通用元件樣式 --- */
+    h1 { color: #2c3e50; }
+    .btn {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 10px;
+        transition: background-color 0.3s;
+    }
+    .btn:hover { background-color: #2980b9; }
+    
+    /* --- 選項按鈕樣式 --- */
+    .option-btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 15px;
+        background-color: #ecf0f1;
+        color: #2c3e50;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        font-size: 18px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.2s;
+    }
+    .option-btn:hover { background-color: #d5dbdb; }
+    .option-btn.correct { background-color: #2ecc71; border-color: #27ae60; color: white; }
+    .option-btn.wrong { background-color: #e74c3c; border-color: #c0392b; color: white; }
+    
+    /* --- 功能性樣式 --- */
+    .hidden { display: none; }
+    
+    /* --- 設定頁面樣式 --- */
+    .settings-group { margin-bottom: 20px; text-align: left; }
+    .settings-group h3 { margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px;}
+    .checkbox-label, .radio-label {
+        display: inline-block;
+        margin-right: 15px;
+        margin-bottom: 10px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    
+    /* --- 遊戲進行中樣式 --- */
+    #question-text { font-size: 32px; font-weight: bold; color: #2c3e50; margin: 20px 0; }
+    #score-display { font-size: 24px; margin-bottom: 20px; font-weight: bold; color: #e67e22; }
+    #progress { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
+    #final-message { font-size: 20px; margin-bottom: 20px; line-height: 1.6;}
+</style>
+</head>
+<body>
+
+<div class="container" id="game-container">
+    <div id="start-screen">
+        <h1>英文單字挑戰</h1>
+        
+        <div class="settings-group">
+            <h3>選擇 Section (可多選)</h3>
+            <label class="checkbox-label"><input type="checkbox" name="section" value="1" checked> Section 1</label>
+            <label class="checkbox-label"><input type="checkbox" name="section" value="2" checked> Section 2</label>
+            <label class="checkbox-label"><input type="checkbox" name="section" value="3" checked> Section 3</label>
+        </div>
+
+        <div class="settings-group">
+            <h3>題目數量</h3>
+            <label class="radio-label"><input type="radio" name="qCount" value="15"> 15 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="20" checked> 20 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="30"> 30 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="50"> 50 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="80"> 80 題</label>
+        </div>
+
+        <button class="btn" onclick="startGame()">開始遊戲</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="progress">題目: 1 / 20</div>
+        <div id="question-text">Word</div>
+        <div id="options-container">
+            </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h1>測驗結束!</h1>
+        <div id="score-display">得分: 0 / 0</div>
+        <div id="final-message"></div>
+        <button class="btn" onclick="location.reload()">Replay 重玩</button>
+    </div>
+</div>
+
+<div class="footer">
+    Designed by KL思考研究室 (2025DEC)
+</div>
+
+<script>
+    // 完整的單字資料庫
+    const vocabData = [
+        { s: 1, w: "balance", m: "平衡" },
+        { s: 1, w: "bend", m: "彎曲 / 俯身" },
+        { s: 1, w: "choke", m: "哽咽 / 窒息 / 嗆到" },
+        { s: 1, w: "gesture", m: "做手勢 / 手勢" },
+        { s: 1, w: "hold your breath", m: "屏住呼吸 / 忍氣" },
+        { s: 1, w: "lean", m: "倚靠 / 傾斜" },
+        { s: 1, w: "nod", m: "點頭" },
+        { s: 1, w: "pinch", m: "捏 / 掐" },
+        { s: 1, w: "point", m: "指 / 指向" },
+        { s: 1, w: "punch", m: "揮拳 / 重擊" },
+        { s: 1, w: "snore", m: "打鼻鼾" },
+        { s: 1, w: "stretch", m: "伸展 / 伸懶腰" },
+        { s: 1, w: "swallow", m: "吞嚥" },
+        { s: 1, w: "twist", m: "扭動 / 扭傷" },
+        { s: 1, w: "wander", m: "徘徊 / 閒逛" },
+        { s: 2, w: "bark", m: "吠叫 / 厲聲喊叫" },
+        { s: 2, w: "beg", m: "乞求 / 懇求" },
+        { s: 2, w: "cheer", m: "歡呼" },
+        { s: 2, w: "clap", m: "拍手 / 鼓掌" },
+        { s: 2, w: "fidget", m: "坐立不安 / 煩躁" },
+        { s: 2, w: "frown", m: "皺眉" },
+        { s: 2, w: "laugh", m: "笑 / 大笑" },
+        { s: 2, w: "roar", m: "咆哮 / 吼叫" },
+        { s: 2, w: "scream", m: "尖叫" },
+        { s: 2, w: "shake your head", m: "搖頭" },
+        { s: 2, w: "shout", m: "大叫 / 呼喝" },
+        { s: 2, w: "sigh", m: "嘆氣" },
+        { s: 2, w: "sob", m: "啜泣 / 嗚咽" },
+        { s: 2, w: "whoop", m: "高喊 (歡呼)" },
+        { s: 2, w: "yell", m: "叫喊 / 吼叫" },
+        { s: 3, w: "annoyed", m: "惱怒的 / 生氣的" },
+        { s: 3, w: "guilty", m: "內疚的 / 有罪的" },
+        { s: 3, w: "calm", m: "平靜的 / 冷靜的" },
+        { s: 3, w: "confident", m: "自信的" },
+        { s: 3, w: "confused", m: "困惑的" },
+        { s: 3, w: "contented", m: "滿足的 / 滿意的" },
+        { s: 3, w: "curious", m: "好奇的" },
+        { s: 3, w: "depressed", m: "沮喪的 / 抑鬱的" },
+        { s: 3, w: "disappointed", m: "失望的" },
+        { s: 3, w: "embarrassed", m: "尷尬的" },
+        { s: 3, w: "fearful", m: "恐懼的 / 害怕的" },
+        { s: 3, w: "grateful", m: "感激的" },
+        { s: 3, w: "hopeful", m: "充滿希望的" },
+        { s: 3, w: "jealous", m: "嫉妒的" },
+        { s: 3, w: "jolly", m: "快活的 / 高興的" },
+        { s: 3, w: "joyful", m: "快樂的" },
+        { s: 3, w: "negative", m: "負面的 / 消極的" },
+        { s: 3, w: "nervous", m: "緊張的" },
+        { s: 3, w: "pride", m: "自豪 / 驕傲" },
+        { s: 3, w: "relaxed", m: "放鬆的" },
+        { s: 3, w: "relieved", m: "釋懷的 / 鬆了一口氣的" },
+        { s: 3, w: "smiley", m: "笑嘻嘻的 / 微笑的" },
+        { s: 3, w: "stressed", m: "感到有壓力的 / 緊張的" },
+        { s: 3, w: "unsettled", m: "不安的 / 未定的" },
+        { s: 3, w: "upset", m: "心煩意亂的 / 難過的" },
+        { s: 3, w: "worried", m: "擔心的" },
+        { s: 3, w: "burst out", m: "突然發生 / 突然爆發 (情緒)" },
+        { s: 3, w: "cheer up", m: "振作起來 / 使高興" },
+        { s: 3, w: "distract", m: "分心 / 轉移注意力" },
+        { s: 3, w: "hold back", m: "抑制 / 阻擋" },
+        { s: 3, w: "rant and rave", m: "咆哮 / 大發雷霆" },
+        { s: 3, w: "release", m: "釋放 / 發洩" },
+        { s: 3, w: "roll your eyes", m: "翻白眼" },
+        { s: 3, w: "shiver", m: "顫抖 / 哆嗦" },
+        { s: 3, w: "shrug", m: "聳肩" },
+        { s: 3, w: "suppress", m: "壓抑 / 鎮壓" },
+        { s: 3, w: "at ease", m: "自在 / 不拘束" },
+        { s: 3, w: "despair", m: "絕望" },
+        { s: 3, w: "discouragement", m: "氣餒 / 挫折" },
+        { s: 3, w: "disgusted", m: "感到噁心的 / 厭惡的" },
+        { s: 3, w: "eager", m: "渴望的 / 熱切的" },
+        { s: 3, w: "ecstatic", m: "欣喜若狂的" },
+        { s: 3, w: "effusive", m: "感情橫溢的 / 過分熱情的" },
+        { s: 3, w: "enthusiastic", m: "熱情的 / 熱心的" },
+        { s: 3, w: "frustrated", m: "感到挫敗的 / 灰心的" },
+        { s: 3, w: "hostile", m: "敵對的 / 懷有敵意的" },
+        { s: 3, w: "irritated", m: "被激怒的 / 惱火的" },
+        { s: 3, w: "pessimistic", m: "悲觀的" },
+        { s: 3, w: "suspicious", m: "多疑的 / 可疑的" },
+        { s: 3, w: "terror", m: "恐懼 / 驚駭" }
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let isAnswering = false;
+
+    // 洗牌函數
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        try {
+            // 1. 獲取選定的 Sections
+            const checkboxes = document.querySelectorAll('input[name="section"]:checked');
+            let selectedSections = [];
+            checkboxes.forEach((cb) => {
+                selectedSections.push(parseInt(cb.value));
+            });
+
+            if (selectedSections.length === 0) {
+                alert("請至少選擇一個 Section！");
+                return;
+            }
+
+            // 2. 過濾字庫
+            let pool = vocabData.filter(item => selectedSections.includes(item.s));
+
+            // 3. 獲取題目數量
+            const qCountInput = document.querySelector('input[name="qCount"]:checked');
+            let maxQ = parseInt(qCountInput.value);
+
+            if (pool.length === 0) {
+                alert("所選 Section 沒有單字資料！");
+                return;
+            }
+
+            // 若字庫少於選擇的題數，則全出
+            if (pool.length < maxQ) {
+                maxQ = pool.length;
+            }
+
+            // 4. 隨機選題
+            shuffle(pool);
+            currentQuestions = pool.slice(0, maxQ);
+            currentIndex = 0;
+            score = 0;
+
+            // 5. 切換畫面
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            showQuestion();
+        } catch (e) {
+            console.error("Game Error:", e);
+            alert("遊戲發生錯誤，請檢查程式碼是否完整複製。");
+        }
+    }
+
+    function showQuestion() {
+        isAnswering = true;
+        const qData = currentQuestions[currentIndex];
+        
+        // 更新進度
+        document.getElementById('progress').innerText = `題目: ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('question-text').innerText = qData.w;
+
+        // 準備選項 (1個正確 + 3個錯誤)
+        let options = [{ text: qData.m, correct: true }];
+        
+        // 隨機抽取3個錯誤選項 (從完整字庫中排除當前正確答案)
+        let distractors = vocabData.filter(v => v.m !== qData.m);
+        shuffle(distractors);
+        for(let i=0; i<3; i++) {
+            if(distractors[i]) {
+                options.push({ text: distractors[i].m, correct: false });
+            }
+        }
+        
+        shuffle(options);
+
+        // 渲染按鈕
+        const container = document.getElementById('options-container');
+        container.innerHTML = ''; // 清空舊按鈕
+        
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => checkAnswer(btn, opt.correct);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+        if (!isAnswering) return; // 防止重複點擊
+        isAnswering = false;
+
+        const allBtns = document.querySelectorAll('.option-btn');
+        
+        if (isCorrect) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            // 顯示正確答案
+            allBtns.forEach(b => {
+                if (b.innerText === currentQuestions[currentIndex].m) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+
+        // 延遲後進入下一題
+        setTimeout(() => {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                endGame();
+            }
+        }, 1500); // 1.5秒後下一題
+    }
+
+    function endGame() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
+        const percentage = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('score-display').innerText = `得分: ${score} / ${currentQuestions.length} (${percentage}%)`;
+        
+        let msg = "";
+        if (percentage === 100) msg = "太棒了！全部答對！🎉";
+        else if (percentage >= 80) msg = "做得很好！繼續保持！👍";
+        else if (percentage >= 60) msg = "及格了，再接再厲！💪";
+        else msg = "別灰心，多練習幾次就會了！📚";
+        
+        document.getElementById('final-message').innerText = msg;
+    }
+</script>
+
+</body>
+</html>
