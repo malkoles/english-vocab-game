@@ -111,7 +111,7 @@
     
     .checkbox-container {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* 兩欄排版 */
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
 
@@ -131,6 +131,35 @@
     #score-display { font-size: 24px; margin-bottom: 20px; font-weight: bold; color: #e67e22; }
     #progress { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
     #final-message { font-size: 20px; margin-bottom: 20px; line-height: 1.6;}
+
+    /* --- 錯題列表樣式 (新增) --- */
+    .mistake-container {
+        margin-top: 20px;
+        text-align: left;
+        background-color: #fff0f0;
+        border: 1px solid #ffcccc;
+        border-radius: 10px;
+        padding: 15px;
+        max-height: 300px; /* 超過高度可捲動 */
+        overflow-y: auto;
+    }
+    .mistake-title {
+        color: #c0392b;
+        font-weight: bold;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ffcccc;
+        padding-bottom: 5px;
+    }
+    .mistake-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #eee;
+    }
+    .mistake-item:last-child { border-bottom: none; }
+    .m-word { font-size: 18px; font-weight: bold; color: #2c3e50; }
+    .m-wrong { color: #e74c3c; font-size: 14px; margin-top: 2px; }
+    .m-correct { color: #27ae60; font-size: 14px; font-weight: bold; margin-top: 2px; }
+
 </style>
 </head>
 <body>
@@ -176,6 +205,8 @@
         <h1>測驗結束!</h1>
         <div id="score-display">得分: 0 / 0</div>
         <div id="final-message"></div>
+        <div id="mistake-area"></div>
+        
         <button class="btn" onclick="location.reload()">Replay 重玩</button>
     </div>
 </div>
@@ -359,6 +390,7 @@
     let currentIndex = 0;
     let score = 0;
     let isAnswering = false;
+    let wrongAnswers = []; // 儲存錯題資料
 
     // 洗牌函數
     function shuffle(array) {
@@ -371,6 +403,9 @@
 
     function startGame() {
         try {
+            // 清空錯題記錄
+            wrongAnswers = [];
+
             // 1. 獲取選定的 Sections
             const checkboxes = document.querySelectorAll('input[name="section"]:checked');
             let selectedSections = [];
@@ -409,6 +444,8 @@
             // 5. 切換畫面
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('hidden'); // 確保結果頁隱藏
+            document.getElementById('mistake-area').innerHTML = ''; // 清空舊的錯題顯示
             
             showQuestion();
         } catch (e) {
@@ -447,12 +484,12 @@
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt.text;
-            btn.onclick = () => checkAnswer(btn, opt.correct);
+            btn.onclick = () => checkAnswer(btn, opt.correct, qData); // 傳入當前問題資料
             container.appendChild(btn);
         });
     }
 
-    function checkAnswer(btn, isCorrect) {
+    function checkAnswer(btn, isCorrect, qData) {
         if (!isAnswering) return; // 防止重複點擊
         isAnswering = false;
 
@@ -463,9 +500,17 @@
             score++;
         } else {
             btn.classList.add('wrong');
+            
+            // 記錄錯題
+            wrongAnswers.push({
+                word: qData.w,
+                wrong: btn.innerText,
+                correct: qData.m
+            });
+
             // 顯示正確答案
             allBtns.forEach(b => {
-                if (b.innerText === currentQuestions[currentIndex].m) {
+                if (b.innerText === qData.m) {
                     b.classList.add('correct');
                 }
             });
@@ -496,6 +541,28 @@
         else msg = "別灰心，多練習幾次就會了！📚";
         
         document.getElementById('final-message').innerText = msg;
+
+        // 生成錯題列表
+        const mistakeArea = document.getElementById('mistake-area');
+        if (wrongAnswers.length > 0) {
+            let html = '<div class="mistake-container">';
+            html += '<div class="mistake-title">錯題重溫 (Review Mistakes)</div>';
+            
+            wrongAnswers.forEach(item => {
+                html += `
+                    <div class="mistake-item">
+                        <div class="m-word">${item.word}</div>
+                        <div class="m-wrong">❌ ${item.wrong}</div>
+                        <div class="m-correct">✅ ${item.correct}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            mistakeArea.innerHTML = html;
+        } else {
+            mistakeArea.innerHTML = ''; // 全對就不用顯示
+        }
     }
 </script>
 
