@@ -39,7 +39,12 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: center; /* Center content vertically */
+        }
+        
+        /* Adjust alignment for result screen to allow scrolling if list is long */
+        .container.has-results {
+            justify-content: flex-start; 
         }
 
         .screen { display: none; text-align: center; }
@@ -137,21 +142,64 @@
 
         /* Result Screen */
         .score-circle {
-            width: 150px;
-            height: 150px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: #4a90e2;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 32px;
             font-weight: bold;
-            margin: 20px auto;
+            margin: 10px auto;
             box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
         }
 
-        .feedback-text { font-size: 18px; margin-bottom: 20px; }
+        .feedback-text { font-size: 18px; margin-bottom: 10px; }
+
+        /* Review Section Styles */
+        #review-section {
+            margin-top: 30px;
+            text-align: left;
+            border-top: 2px dashed #ddd;
+            padding-top: 20px;
+            display: none; /* Hidden by default */
+        }
+
+        #review-section h3 {
+            color: #e74c3c;
+            text-align: center;
+        }
+
+        .review-item {
+            background: #fff5f5;
+            border: 1px solid #ffcccc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .review-q {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .review-ans {
+            font-size: 15px;
+            margin: 4px 0;
+        }
+
+        .ans-wrong { color: #dc3545; text-decoration: line-through; margin-right: 10px;}
+        .ans-correct { color: #28a745; font-weight: bold; }
+        
+        .review-label {
+            font-size: 12px;
+            color: #888;
+            margin-right: 5px;
+            text-transform: uppercase;
+        }
 
         footer {
             text-align: center;
@@ -162,44 +210,16 @@
             width: 100%;
             background: white;
         }
-     /* --- 回主頁按鈕樣式 (新增) --- */
-    .home-btn {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background-color: white;
-        color: #2c3e50;
-        border: 2px solid #bdc3c7;
-        padding: 8px 15px;
-        border-radius: 20px; /* 圓角設計 */
-        text-decoration: none; /* 去掉底線 */
-        font-size: 14px;
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.2s;
-        z-index: 1000; /* 確保它浮在最上層 */
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .home-btn:hover {
-        background-color: #ecf0f1;
-        transform: translateY(-2px);
-    }
-        
     </style>
 </head>
 <body>
 
-<a href="index.html" class="home-btn">🏠 Home</a>
-    
 <header>
     <h1>Vocabulary Challenge</h1>
     <h2>For S1 English Learning</h2>
 </header>
 
-<div class="container">
+<div class="container" id="main-container">
     <div id="setup-screen" class="screen active">
         <div class="options-group">
             <h3>Select Topics (Type)</h3>
@@ -234,6 +254,13 @@
         </div>
         <p class="feedback-text" id="feedback-msg"></p>
         <p>Correct Answers: <span id="correct-count">0</span> / <span id="total-count">0</span></p>
+        
+        <div id="review-section">
+            <h3>Mistakes Review</h3>
+            <div id="review-list">
+                </div>
+        </div>
+
         <button class="replay-btn" onclick="resetGame()">Replay 重玩</button>
     </div>
 </div>
@@ -243,7 +270,6 @@
 </footer>
 
 <script>
-    // Data from the provided Google Sheet
     const vocabData = [
         {type: "Body actions", word: "balance", exp: "(v.) to keep your body in a steady position without falling over"},
         {type: "Body actions", word: "bend", exp: "(v.) to move the top part of your body forward and downwards"},
@@ -331,6 +357,7 @@
     let currentIndex = 0;
     let score = 0;
     let isProcessing = false;
+    let wrongAnswers = []; // Store wrong answers here
 
     // Shuffle Array Utility
     function shuffleArray(array) {
@@ -363,7 +390,7 @@
         const countInput = document.querySelector('input[name="qCount"]:checked');
         let questionCount = parseInt(countInput.value);
         if (questionCount > filteredData.length) {
-            questionCount = filteredData.length; // Cap if not enough data
+            questionCount = filteredData.length;
         }
 
         // 4. Prepare Questions
@@ -373,6 +400,8 @@
         // Reset Game State
         currentIndex = 0;
         score = 0;
+        wrongAnswers = []; // Reset wrong answers
+        document.getElementById('main-container').classList.remove('has-results');
         showScreen('quiz-screen');
         loadQuestion();
     }
@@ -397,8 +426,6 @@
 
         // Generate Options
         const correctAns = currentQ.word;
-        // Get 3 random wrong answers from the FULL dataset (not just filtered, to add variety, or stick to filtered)
-        // Let's stick to filtered/vocabData to ensure context makes sense, but ensure they are unique
         let distractors = vocabData
             .filter(item => item.word !== correctAns)
             .map(item => item.word);
@@ -416,12 +443,12 @@
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(btn, opt, correctAns);
+            btn.onclick = () => checkAnswer(btn, opt, correctAns, currentQ.exp);
             container.appendChild(btn);
         });
     }
 
-    function checkAnswer(btn, selected, correct) {
+    function checkAnswer(btn, selected, correct, questionText) {
         if (isProcessing) return;
         isProcessing = true;
 
@@ -432,6 +459,13 @@
             score++;
         } else {
             btn.classList.add('wrong');
+            // Record mistake
+            wrongAnswers.push({
+                question: questionText,
+                userAns: selected,
+                correctAns: correct
+            });
+
             // Show correct one
             buttons.forEach(b => {
                 if (b.innerText === correct) b.classList.add('correct');
@@ -447,6 +481,8 @@
 
     function endGame() {
         showScreen('result-screen');
+        document.getElementById('main-container').classList.add('has-results'); // Allow scrolling
+        
         const percentage = Math.round((score / currentQuestions.length) * 100);
         document.getElementById('final-score').innerText = percentage;
         document.getElementById('correct-count').innerText = score;
@@ -459,13 +495,35 @@
         else msg = "Don't give up! Try again! 📚";
         
         document.getElementById('feedback-msg').innerText = msg;
+
+        // Render Review Section
+        const reviewSection = document.getElementById('review-section');
+        const reviewList = document.getElementById('review-list');
+        reviewList.innerHTML = '';
+
+        if (wrongAnswers.length > 0) {
+            reviewSection.style.display = 'block';
+            wrongAnswers.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'review-item';
+                div.innerHTML = `
+                    <div class="review-q"><span class="review-label">Question:</span> ${item.question}</div>
+                    <div class="review-ans"><span class="review-label">You chose:</span> <span class="ans-wrong">${item.userAns}</span></div>
+                    <div class="review-ans"><span class="review-label">Correct:</span> <span class="ans-correct">${item.correctAns}</span></div>
+                `;
+                reviewList.appendChild(div);
+            });
+        } else {
+            reviewSection.style.display = 'none';
+        }
     }
 
     function resetGame() {
         showScreen('setup-screen');
+        document.getElementById('main-container').classList.remove('has-results');
+        window.scrollTo(0, 0); // Scroll to top
     }
 </script>
 
 </body>
-
 </html>
