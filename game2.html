@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English Vocabulary Quiz</title>
     <style>
+
+    /* --- 回主頁按鈕樣式 (新增) --- */
+    .home-btn {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: white;
+        color: #2c3e50;
+        border: 2px solid #bdc3c7;
+        padding: 8px 15px;
+        border-radius: 20px; /* 圓角設計 */
+        text-decoration: none; /* 去掉底線 */
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        z-index: 1000; /* 確保它浮在最上層 */
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .home-btn:hover {
+        background-color: #ecf0f1;
+        transform: translateY(-2px);
+    }
+        
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f4f8;
@@ -214,6 +242,8 @@
 </head>
 <body>
 
+ <a href="index.html" class="home-btn">🏠 Home</a>
+    
 <header>
     <h1>Vocabulary Challenge</h1>
     <h2>For S1 English Learning</h2>
@@ -527,3 +557,4 @@
 
 </body>
 </html>
+
