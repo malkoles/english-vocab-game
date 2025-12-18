@@ -3,22 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>中一英文單字測驗</title>
+<title>English Vocab Challenge</title>
 <style>
     /* --- 頁面基礎樣式 --- */
     body {
         font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
         background-color: #f0f8ff;
-        /* 使用 Flexbox 讓內容垂直置中 */
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 100vh; /* 確保最小高度為視窗高度 */
+        min-height: 100vh;
         margin: 0;
-        /* 為 Footer 預留空間的設定 */
         position: relative;
         padding-bottom: 50px; 
         box-sizing: border-box;
+    }
+
+    /* --- 回主頁按鈕樣式 --- */
+    .home-btn {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: white;
+        color: #2c3e50;
+        border: 2px solid #bdc3c7;
+        padding: 8px 15px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .home-btn:hover {
+        background-color: #ecf0f1;
+        transform: translateY(-2px);
     }
 
     /* --- 遊戲主容器樣式 --- */
@@ -30,12 +53,11 @@
         width: 90%;
         max-width: 600px;
         text-align: center;
-        /* 確保在小螢幕上不會貼到頂部 */
-        margin-top: 20px;
+        margin-top: 50px;
         margin-bottom: 20px;
     }
 
-    /* --- Footer 樣式 (新增) --- */
+    /* --- Footer 樣式 --- */
     .footer {
         position: absolute;
         bottom: 15px;
@@ -43,13 +65,13 @@
         width: 100%;
         text-align: center;
         font-size: 13px;
-        color: #95a5a6; /* 淺灰色看起來比較專業 */
+        color: #95a5a6;
     }
 
     /* --- 通用元件樣式 --- */
-    h1 { color: #2c3e50; }
+    h1 { color: #2c3e50; font-size: 28px; }
     .btn {
-        background-color: #3498db;
+        background-color: #3498db; /* 英文科用藍色 */
         color: white;
         border: none;
         padding: 12px 24px;
@@ -86,64 +108,78 @@
     /* --- 設定頁面樣式 --- */
     .settings-group { margin-bottom: 20px; text-align: left; }
     .settings-group h3 { margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px;}
+    
+    .checkbox-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
     .checkbox-label, .radio-label {
-        display: inline-block;
-        margin-right: 15px;
-        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
         font-size: 16px;
         cursor: pointer;
     }
     
+    .checkbox-label input { margin-right: 8px; }
+
     /* --- 遊戲進行中樣式 --- */
-    #question-text { font-size: 32px; font-weight: bold; color: #2c3e50; margin: 20px 0; }
+    #question-text { font-size: 32px; font-weight: bold; color: #2c3e50; margin: 20px 0; min-height: 60px;}
     #score-display { font-size: 24px; margin-bottom: 20px; font-weight: bold; color: #e67e22; }
     #progress { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
     #final-message { font-size: 20px; margin-bottom: 20px; line-height: 1.6;}
-    /* --- 回主頁按鈕樣式 (新增) --- */
-    .home-btn {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background-color: white;
-        color: #2c3e50;
-        border: 2px solid #bdc3c7;
-        padding: 8px 15px;
-        border-radius: 20px; /* 圓角設計 */
-        text-decoration: none; /* 去掉底線 */
-        font-size: 14px;
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.2s;
-        z-index: 1000; /* 確保它浮在最上層 */
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
 
-    .home-btn:hover {
-        background-color: #ecf0f1;
-        transform: translateY(-2px);
+    /* --- 錯題列表樣式 --- */
+    .mistake-container {
+        margin-top: 20px;
+        text-align: left;
+        background-color: #fff0f0;
+        border: 1px solid #ffcccc;
+        border-radius: 10px;
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
     }
+    .mistake-title {
+        color: #c0392b;
+        font-weight: bold;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ffcccc;
+        padding-bottom: 5px;
+    }
+    .mistake-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #eee;
+    }
+    .mistake-item:last-child { border-bottom: none; }
+    .m-word { font-size: 18px; font-weight: bold; color: #2c3e50; }
+    .m-wrong { color: #e74c3c; font-size: 14px; margin-top: 2px; }
+    .m-correct { color: #27ae60; font-size: 14px; font-weight: bold; margin-top: 2px; }
 
 </style>
 </head>
 <body>
-    
+
 <a href="index.html" class="home-btn">🏠 Home</a>
-    
+
 <div class="container" id="game-container">
     <div id="start-screen">
-        <h1>英文單字挑戰</h1>
+        <h1>English Vocab Challenge</h1>
         
         <div class="settings-group">
-            <h3>選擇 Section (可多選)</h3>
-            <label class="checkbox-label"><input type="checkbox" name="section" value="1" checked> Section 1</label>
-            <label class="checkbox-label"><input type="checkbox" name="section" value="2" checked> Section 2</label>
-            <label class="checkbox-label"><input type="checkbox" name="section" value="3" checked> Section 3</label>
+            <h3>Select Section (可多選)</h3>
+            <div class="checkbox-container">
+                <label class="checkbox-label"><input type="checkbox" name="section" value="1" checked> Section 1</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="2" checked> Section 2</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="3" checked> Section 3</label>
+            </div>
         </div>
 
         <div class="settings-group">
-            <h3>題目數量</h3>
+            <h3>Questions</h3>
             <label class="radio-label"><input type="radio" name="qCount" value="15"> 15 題</label>
             <label class="radio-label"><input type="radio" name="qCount" value="20" checked> 20 題</label>
             <label class="radio-label"><input type="radio" name="qCount" value="30"> 30 題</label>
@@ -151,30 +187,27 @@
             <label class="radio-label"><input type="radio" name="qCount" value="80"> 80 題</label>
         </div>
 
-        <button class="btn" onclick="startGame()">開始遊戲</button>
+        <button class="btn" onclick="startGame()">Start Game</button>
     </div>
 
     <div id="quiz-screen" class="hidden">
         <div id="progress">題目: 1 / 20</div>
         <div id="question-text">Word</div>
-        <div id="options-container">
-            </div>
+        <div id="options-container"></div>
     </div>
 
     <div id="result-screen" class="hidden">
         <h1>測驗結束!</h1>
         <div id="score-display">得分: 0 / 0</div>
         <div id="final-message"></div>
+        <div id="mistake-area"></div>
         <button class="btn" onclick="location.reload()">Replay 重玩</button>
     </div>
 </div>
 
-<div class="footer">
-    Designed by KL思考研究室 (2025DEC)
-</div>
+<div class="footer">Designed by KL ThinkLab</div>
 
 <script>
-    // 完整的單字資料庫
     const vocabData = [
         { s: 1, w: "balance", m: "平衡" },
         { s: 1, w: "bend", m: "彎曲 / 俯身" },
@@ -262,8 +295,8 @@
     let currentIndex = 0;
     let score = 0;
     let isAnswering = false;
+    let wrongAnswers = [];
 
-    // 洗牌函數
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -274,49 +307,41 @@
 
     function startGame() {
         try {
-            // 1. 獲取選定的 Sections
+            wrongAnswers = [];
             const checkboxes = document.querySelectorAll('input[name="section"]:checked');
             let selectedSections = [];
-            checkboxes.forEach((cb) => {
-                selectedSections.push(parseInt(cb.value));
-            });
+            checkboxes.forEach((cb) => selectedSections.push(parseInt(cb.value)));
 
             if (selectedSections.length === 0) {
-                alert("請至少選擇一個 Section！");
+                alert("Please select at least one Section!");
                 return;
             }
 
-            // 2. 過濾字庫
             let pool = vocabData.filter(item => selectedSections.includes(item.s));
-
-            // 3. 獲取題目數量
             const qCountInput = document.querySelector('input[name="qCount"]:checked');
             let maxQ = parseInt(qCountInput.value);
 
             if (pool.length === 0) {
-                alert("所選 Section 沒有單字資料！");
+                alert("No data found for selected sections!");
                 return;
             }
 
-            // 若字庫少於選擇的題數，則全出
-            if (pool.length < maxQ) {
-                maxQ = pool.length;
-            }
+            if (pool.length < maxQ) maxQ = pool.length;
 
-            // 4. 隨機選題
             shuffle(pool);
             currentQuestions = pool.slice(0, maxQ);
             currentIndex = 0;
             score = 0;
 
-            // 5. 切換畫面
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('mistake-area').innerHTML = '';
             
             showQuestion();
         } catch (e) {
-            console.error("Game Error:", e);
-            alert("遊戲發生錯誤，請檢查程式碼是否完整複製。");
+            console.error("Error:", e);
+            alert("An error occurred. Please check code.");
         }
     }
 
@@ -324,41 +349,32 @@
         isAnswering = true;
         const qData = currentQuestions[currentIndex];
         
-        // 更新進度
-        document.getElementById('progress').innerText = `題目: ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('progress').innerText = `Question: ${currentIndex + 1} / ${currentQuestions.length}`;
         document.getElementById('question-text').innerText = qData.w;
 
-        // 準備選項 (1個正確 + 3個錯誤)
         let options = [{ text: qData.m, correct: true }];
-        
-        // 隨機抽取3個錯誤選項 (從完整字庫中排除當前正確答案)
         let distractors = vocabData.filter(v => v.m !== qData.m);
         shuffle(distractors);
         for(let i=0; i<3; i++) {
-            if(distractors[i]) {
-                options.push({ text: distractors[i].m, correct: false });
-            }
+            if(distractors[i]) options.push({ text: distractors[i].m, correct: false });
         }
         
         shuffle(options);
-
-        // 渲染按鈕
         const container = document.getElementById('options-container');
-        container.innerHTML = ''; // 清空舊按鈕
+        container.innerHTML = ''; 
         
         options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt.text;
-            btn.onclick = () => checkAnswer(btn, opt.correct);
+            btn.onclick = () => checkAnswer(btn, opt.correct, qData);
             container.appendChild(btn);
         });
     }
 
-    function checkAnswer(btn, isCorrect) {
-        if (!isAnswering) return; // 防止重複點擊
+    function checkAnswer(btn, isCorrect, qData) {
+        if (!isAnswering) return;
         isAnswering = false;
-
         const allBtns = document.querySelectorAll('.option-btn');
         
         if (isCorrect) {
@@ -366,23 +382,17 @@
             score++;
         } else {
             btn.classList.add('wrong');
-            // 顯示正確答案
+            wrongAnswers.push({ word: qData.w, wrong: btn.innerText, correct: qData.m });
             allBtns.forEach(b => {
-                if (b.innerText === currentQuestions[currentIndex].m) {
-                    b.classList.add('correct');
-                }
+                if (b.innerText === qData.m) b.classList.add('correct');
             });
         }
 
-        // 延遲後進入下一題
         setTimeout(() => {
             currentIndex++;
-            if (currentIndex < currentQuestions.length) {
-                showQuestion();
-            } else {
-                endGame();
-            }
-        }, 1500); // 1.5秒後下一題
+            if (currentIndex < currentQuestions.length) showQuestion();
+            else endGame();
+        }, 1500);
     }
 
     function endGame() {
@@ -390,18 +400,30 @@
         document.getElementById('result-screen').classList.remove('hidden');
         
         const percentage = Math.round((score / currentQuestions.length) * 100);
-        document.getElementById('score-display').innerText = `得分: ${score} / ${currentQuestions.length} (${percentage}%)`;
+        document.getElementById('score-display').innerText = `Score: ${score} / ${currentQuestions.length} (${percentage}%)`;
         
         let msg = "";
-        if (percentage === 100) msg = "太棒了！全部答對！🎉";
-        else if (percentage >= 80) msg = "做得很好！繼續保持！👍";
-        else if (percentage >= 60) msg = "及格了，再接再厲！💪";
-        else msg = "別灰心，多練習幾次就會了！📚";
-        
+        if (percentage === 100) msg = "Perfect! 🎉";
+        else if (percentage >= 80) msg = "Great Job! 👍";
+        else if (percentage >= 60) msg = "Good Effort! 💪";
+        else msg = "Keep Practicing! 📚";
         document.getElementById('final-message').innerText = msg;
+
+        const mistakeArea = document.getElementById('mistake-area');
+        if (wrongAnswers.length > 0) {
+            let html = '<div class="mistake-container"><div class="mistake-title">Review Mistakes</div>';
+            wrongAnswers.forEach(item => {
+                html += `<div class="mistake-item">
+                        <div class="m-word">${item.word}</div>
+                        <div class="m-wrong">❌ ${item.wrong}</div>
+                        <div class="m-correct">✅ ${item.correct}</div>
+                    </div>`;
+            });
+            html += '</div>';
+            mistakeArea.innerHTML = html;
+        }
     }
 </script>
 
 </body>
 </html>
-
