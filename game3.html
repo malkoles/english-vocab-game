@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中一數學詞彙 (Maths Terms)</title>
+<style>
+    /* --- 頁面基礎樣式 --- */
+    body {
+        font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+        background-color: #f0f8ff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        position: relative;
+        padding-bottom: 50px; 
+        box-sizing: border-box;
+    }
+
+    /* --- 回主頁按鈕樣式 --- */
+    .home-btn {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: white;
+        color: #2c3e50;
+        border: 2px solid #bdc3c7;
+        padding: 8px 15px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .home-btn:hover {
+        background-color: #ecf0f1;
+        transform: translateY(-2px);
+    }
+
+    /* --- 遊戲主容器樣式 --- */
+    .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+        margin-top: 50px;
+        margin-bottom: 20px;
+    }
+
+    /* --- Footer 樣式 --- */
+    .footer {
+        position: absolute;
+        bottom: 15px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 13px;
+        color: #95a5a6;
+    }
+
+    /* --- 通用元件樣式 --- */
+    h1 { color: #2c3e50; font-size: 28px; }
+    .btn {
+        background-color: #8e44ad; /* 數學科用紫色 */
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 10px;
+        transition: background-color 0.3s;
+    }
+    .btn:hover { background-color: #732d91; }
+    
+    /* --- 選項按鈕樣式 --- */
+    .option-btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 15px;
+        background-color: #ecf0f1;
+        color: #2c3e50;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        font-size: 18px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.2s;
+    }
+    .option-btn:hover { background-color: #d5dbdb; }
+    .option-btn.correct { background-color: #2ecc71; border-color: #27ae60; color: white; }
+    .option-btn.wrong { background-color: #e74c3c; border-color: #c0392b; color: white; }
+    
+    /* --- 功能性樣式 --- */
+    .hidden { display: none; }
+    
+    /* --- 設定頁面樣式 --- */
+    .settings-group { margin-bottom: 20px; text-align: left; }
+    .settings-group h3 { margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px;}
+    
+    .checkbox-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 兩欄排版 */
+        gap: 10px;
+    }
+
+    .checkbox-label, .radio-label {
+        display: flex;
+        align-items: center;
+        margin-right: 15px;
+        margin-bottom: 5px;
+        font-size: 15px;
+        cursor: pointer;
+    }
+    
+    .checkbox-label input { margin-right: 8px; }
+
+    /* --- 遊戲進行中樣式 --- */
+    #question-text { font-size: 28px; font-weight: bold; color: #2c3e50; margin: 20px 0; min-height: 60px;}
+    #score-display { font-size: 24px; margin-bottom: 20px; font-weight: bold; color: #e67e22; }
+    #progress { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
+    #final-message { font-size: 20px; margin-bottom: 20px; line-height: 1.6;}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="home-btn">🏠 Home</a>
+
+<div class="container" id="game-container">
+    <div id="start-screen">
+        <h1>Maths Terms Challenge</h1>
+        
+        <div class="settings-group">
+            <h3>Select Chapters (可多選)</h3>
+            <div class="checkbox-container">
+                <label class="checkbox-label"><input type="checkbox" name="section" value="0" checked> Ch 0 - Fundamental</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="1" checked> Ch 1 - Basic Maths</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="2" checked> Ch 2 - Numbers</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="3" checked> Ch 3 - Algebra</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="4" checked> Ch 4 - Equations</label>
+                <label class="checkbox-label"><input type="checkbox" name="section" value="5" checked> Ch 5 - Geometry</label>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <h3>Questions (題目數量)</h3>
+            <label class="radio-label"><input type="radio" name="qCount" value="15"> 15 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="20" checked> 20 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="30"> 30 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="50"> 50 題</label>
+            <label class="radio-label"><input type="radio" name="qCount" value="80"> 80 題</label>
+        </div>
+
+        <button class="btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="progress">題目: 1 / 20</div>
+        <div id="question-text">Word</div>
+        <div id="options-container">
+            </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h1>測驗結束!</h1>
+        <div id="score-display">得分: 0 / 0</div>
+        <div id="final-message"></div>
+        <button class="btn" onclick="location.reload()">Replay 重玩</button>
+    </div>
+</div>
+
+<div class="footer">
+    Designed by KL ThinkLab
+</div>
+
+<script>
+    // 數學詞彙資料庫
+    const vocabData = [
+        { s: 0, w: "Natural number", m: "自然數" },
+        { s: 0, w: "Whole number", m: "整數" },
+        { s: 0, w: "Divisible", m: "可整除的" },
+        { s: 0, w: "Even number", m: "偶數" },
+        { s: 0, w: "Odd number", m: "奇數" },
+        { s: 0, w: "Quotient", m: "商" },
+        { s: 0, w: "Addition", m: "加法" },
+        { s: 0, w: "Subtraction", m: "減法" },
+        { s: 0, w: "Multiplication", m: "乘法" },
+        { s: 0, w: "Division", m: "除法" },
+        { s: 0, w: "Sum", m: "和" },
+        { s: 0, w: "Difference", m: "差" },
+        { s: 0, w: "Product", m: "積" },
+        { s: 0, w: "Divisor", m: "除數" },
+        { s: 0, w: "Dividend", m: "被除數" },
+        { s: 0, w: "Remainder", m: "餘數" },
+        { s: 0, w: "Multiple", m: "倍數" },
+        { s: 0, w: "Lowest Common Multiple", m: "最小公倍數" },
+        { s: 0, w: "Common multiple", m: "公倍數" },
+        { s: 0, w: "Factor", m: "因數" },
+        { s: 0, w: "Highest Common Factor", m: "最大公因數" },
+        { s: 0, w: "Greatest common divisor", m: "最大公約數" },
+        { s: 0, w: "Common Factor", m: "公因數" },
+        { s: 0, w: "Fraction", m: "分數" },
+        { s: 0, w: "Numerator", m: "分子" },
+        { s: 0, w: "Denominator", m: "分母" },
+        { s: 0, w: "Proper fraction", m: "真分數" },
+        { s: 0, w: "Improper fraction", m: "假分數" },
+        { s: 0, w: "Mixed fraction", m: "帶分數" },
+        { s: 0, w: "Expand a fraction", m: "擴分" },
+        { s: 0, w: "Reduce a fraction", m: "約分" },
+        { s: 0, w: "Decimal", m: "小數" },
+        { s: 0, w: "Reciprocal", m: "倒數" },
+        { s: 0, w: "Multiplicand", m: "被乘數" },
+        { s: 0, w: "Multiplier", m: "乘數" },
+        { s: 1, w: "Power", m: "次方" },
+        { s: 1, w: "Index Notation", m: "指數記數法" },
+        { s: 1, w: "Square", m: "平方" },
+        { s: 1, w: "Cube", m: "立方" },
+        { s: 1, w: "Base", m: "底" },
+        { s: 1, w: "Index / Exponent", m: "指數" },
+        { s: 1, w: "Expanded Form", m: "連乘式" },
+        { s: 1, w: "Prime Number", m: "質數" },
+        { s: 1, w: "Composite Number", m: "合成數" },
+        { s: 1, w: "Prime Factor", m: "質因數" },
+        { s: 1, w: "Short Division", m: "短除法" },
+        { s: 1, w: "Prime Factorization", m: "質因數分解" },
+        { s: 2, w: "Directed number", m: "有向數" },
+        { s: 2, w: "Positive number", m: "正數" },
+        { s: 2, w: "Negative number", m: "負數" },
+        { s: 2, w: "Magnitude", m: "大小" },
+        { s: 2, w: "Opposite number", m: "相反數" },
+        { s: 2, w: "Integer", m: "整數" },
+        { s: 2, w: "Number line", m: "數線" },
+        { s: 2, w: "Ascending order", m: "遞升序" },
+        { s: 2, w: "Descending order", m: "遞降序" },
+        { s: 3, w: "Algebra", m: "代數" },
+        { s: 3, w: "Algebraic expressions", m: "代數式" },
+        { s: 3, w: "Base", m: "底" },
+        { s: 3, w: "Index/exponent", m: "指數" },
+        { s: 3, w: "Expanded form", m: "連乘式" },
+        { s: 3, w: "Term", m: "項" },
+        { s: 3, w: "Formula", m: "公式" },
+        { s: 3, w: "Variable", m: "變數" },
+        { s: 3, w: "Constant", m: "常數" },
+        { s: 3, w: "Method of substitution", m: "代入法" },
+        { s: 3, w: "Sequence of odd numbers", m: "奇數數列" },
+        { s: 3, w: "Sequence of even numbers", m: "偶數數列" },
+        { s: 3, w: "Square number", m: "正方形數" },
+        { s: 3, w: "Sequence of square numbers", m: "正方形數數列" },
+        { s: 3, w: "Triangular number", m: "三角形數" },
+        { s: 3, w: "Sequence of triangular numbers", m: "三角形數數列" },
+        { s: 3, w: "General term", m: "通項" },
+        { s: 3, w: "Function", m: "函數" },
+        { s: 4, w: "Equation", m: "方程" },
+        { s: 4, w: "Linear Equation in One Unknown", m: "一元一次方程" },
+        { s: 4, w: "Unknown", m: "未知數" },
+        { s: 4, w: "Solution", m: "解" },
+        { s: 4, w: "Root", m: "根" },
+        { s: 4, w: "Transposition of terms", m: "移項" },
+        { s: 4, w: "Distributive law of multiplication", m: "乘法分配律" },
+        { s: 4, w: "Consecutive numbers", m: "連續數" },
+        { s: 5, w: "Degree", m: "度" },
+        { s: 5, w: "Round angle", m: "周角" },
+        { s: 5, w: "Straight angle", m: "平角" },
+        { s: 5, w: "Protractor", m: "量角器" },
+        { s: 5, w: "Geometry", m: "幾何學" },
+        { s: 5, w: "Point (pt.)", m: "點" },
+        { s: 5, w: "Line", m: "線" },
+        { s: 5, w: "straight line (st. line)", m: "直線" },
+        { s: 5, w: "curve", m: "曲線" },
+        { s: 5, w: "Line segment", m: "線段" },
+        { s: 5, w: "End point", m: "端點" },
+        { s: 5, w: "Point of intersection", m: "交點" },
+        { s: 5, w: "Surface", m: "面" },
+        { s: 5, w: "Plane", m: "平面" },
+        { s: 5, w: "Curved surface", m: "曲面" },
+        { s: 5, w: "Angle (∠)", m: "角" },
+        { s: 5, w: "Arm", m: "邊" },
+        { s: 5, w: "Vertex", m: "頂點" },
+        { s: 5, w: "Acute angle", m: "銳角" },
+        { s: 5, w: "Right angle", m: "直角" },
+        { s: 5, w: "Obtuse angle", m: "鈍角" },
+        { s: 5, w: "Reflex angle", m: "反角" },
+        { s: 5, w: "Complementary angles", m: "餘角" },
+        { s: 5, w: "Complementary", m: "互餘" },
+        { s: 5, w: "Supplementary angles (supp. ∠s)", m: "補角" },
+        { s: 5, w: "Supplementary", m: "互補" },
+        { s: 5, w: "Parallel lines (//)", m: "平行線" },
+        { s: 5, w: "Perpendicular lines", m: "垂直線" },
+        { s: 5, w: "Plane figure", m: "平面圖形" },
+        { s: 5, w: "Circle", m: "圓" },
+        { s: 5, w: "Centre of the circle", m: "圓心" },
+        { s: 5, w: "Circumference", m: "圓周" },
+        { s: 5, w: "Radius", m: "半徑" },
+        { s: 5, w: "Diameter", m: "直徑" },
+        { s: 5, w: "Arc", m: "弧" },
+        { s: 5, w: "Triangle", m: "三角形" },
+        { s: 5, w: "Side", m: "邊" },
+        { s: 5, w: "Interior angles", m: "內角" },
+        { s: 5, w: "Equilateral triangle", m: "等邊三角形" },
+        { s: 5, w: "Isosceles triangle", m: "等腰三角形" },
+        { s: 5, w: "Acute-angled triangle", m: "銳角三角形" },
+        { s: 5, w: "Right-angled triangle", m: "直角三角形" },
+        { s: 5, w: "Obtuse-angled triangle", m: "鈍角三角形" },
+        { s: 5, w: "Polygon", m: "多邊形" },
+        { s: 5, w: "Diagonal", m: "對角綫" },
+        { s: 5, w: "Quadrilateral", m: "四邊形" },
+        { s: 5, w: "Pentagon", m: "五邊形" },
+        { s: 5, w: "Hexagon", m: "六邊形" },
+        { s: 5, w: "Heptagon", m: "七邊形" },
+        { s: 5, w: "Octagon", m: "八邊形" },
+        { s: 5, w: "Convex polygon", m: "凸多邊形" },
+        { s: 5, w: "Concave polygon", m: "凹多邊形" },
+        { s: 5, w: "Equilateral polygon", m: "等邊多邊形" },
+        { s: 5, w: "Equiangular polygon", m: "等角多邊形" },
+        { s: 5, w: "Regular polygon", m: "正多邊形" },
+        { s: 5, w: "Compasses", m: "圓規" },
+        { s: 5, w: "Set square", m: "三角尺" },
+        { s: 5, w: "Hypotenuse", m: "斜邊" },
+        { s: 5, w: "Three-dimensional figure", m: "立體圖形" },
+        { s: 5, w: "Solid", m: "立體" },
+        { s: 5, w: "Face", m: "面" },
+        { s: 5, w: "Edge", m: "邊" },
+        { s: 5, w: "Polyhedron", m: "多面體" },
+        { s: 5, w: "Cuboid", m: "長方體" },
+        { s: 5, w: "Triangular prism", m: "三角柱" },
+        { s: 5, w: "Quadrilateral pyramid", m: "四角錐" },
+        { s: 5, w: "Non-polyhedron", m: "非多面體" },
+        { s: 5, w: "Circular cylinder", m: "圓柱" },
+        { s: 5, w: "Circular cone", m: "圓錐" },
+        { s: 5, w: "Sphere", m: "球體" },
+        { s: 5, w: "Prism", m: "角柱" },
+        { s: 5, w: "Base", m: "底" },
+        { s: 5, w: "Lateral face", m: "側面" },
+        { s: 5, w: "Slant edge", m: "側稜" },
+        { s: 5, w: "Right prism", m: "直立角柱" },
+        { s: 5, w: "Pyramid", m: "角錐" },
+        { s: 5, w: "Tetrahedron", m: "四面體" },
+        { s: 5, w: "Right pyramid", m: "直立角錐" },
+        { s: 5, w: "Right circular cylinder", m: "直立圓柱" },
+        { s: 5, w: "Right circular cone", m: "直立圓錐" },
+        { s: 5, w: "Cross-section / section", m: "橫切面 / 截面" },
+        { s: 5, w: "Uniform cross-section", m: "均勻橫切面" },
+        { s: 5, w: "Isometric grid", m: "等距方格" },
+        { s: 5, w: "Oblique grid", m: "斜網格" }
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let isAnswering = false;
+
+    // 洗牌函數
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        try {
+            // 1. 獲取選定的 Sections
+            const checkboxes = document.querySelectorAll('input[name="section"]:checked');
+            let selectedSections = [];
+            checkboxes.forEach((cb) => {
+                selectedSections.push(parseInt(cb.value));
+            });
+
+            if (selectedSections.length === 0) {
+                alert("請至少選擇一個章節 (Chapter)！");
+                return;
+            }
+
+            // 2. 過濾字庫
+            let pool = vocabData.filter(item => selectedSections.includes(item.s));
+
+            // 3. 獲取題目數量
+            const qCountInput = document.querySelector('input[name="qCount"]:checked');
+            let maxQ = parseInt(qCountInput.value);
+
+            if (pool.length === 0) {
+                alert("所選章節沒有資料！");
+                return;
+            }
+
+            // 若字庫少於選擇的題數，則全出
+            if (pool.length < maxQ) {
+                maxQ = pool.length;
+            }
+
+            // 4. 隨機選題
+            shuffle(pool);
+            currentQuestions = pool.slice(0, maxQ);
+            currentIndex = 0;
+            score = 0;
+
+            // 5. 切換畫面
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            showQuestion();
+        } catch (e) {
+            console.error("Game Error:", e);
+            alert("遊戲發生錯誤，請檢查程式碼是否完整複製。");
+        }
+    }
+
+    function showQuestion() {
+        isAnswering = true;
+        const qData = currentQuestions[currentIndex];
+        
+        // 更新進度
+        document.getElementById('progress').innerText = `題目: ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('question-text').innerText = qData.w;
+
+        // 準備選項 (1個正確 + 3個錯誤)
+        let options = [{ text: qData.m, correct: true }];
+        
+        // 隨機抽取3個錯誤選項 (從完整字庫中排除當前正確答案)
+        let distractors = vocabData.filter(v => v.m !== qData.m);
+        shuffle(distractors);
+        for(let i=0; i<3; i++) {
+            if(distractors[i]) {
+                options.push({ text: distractors[i].m, correct: false });
+            }
+        }
+        
+        shuffle(options);
+
+        // 渲染按鈕
+        const container = document.getElementById('options-container');
+        container.innerHTML = ''; // 清空舊按鈕
+        
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => checkAnswer(btn, opt.correct);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+        if (!isAnswering) return; // 防止重複點擊
+        isAnswering = false;
+
+        const allBtns = document.querySelectorAll('.option-btn');
+        
+        if (isCorrect) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            // 顯示正確答案
+            allBtns.forEach(b => {
+                if (b.innerText === currentQuestions[currentIndex].m) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+
+        // 延遲後進入下一題
+        setTimeout(() => {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                endGame();
+            }
+        }, 1500); // 1.5秒後下一題
+    }
+
+    function endGame() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
+        const percentage = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('score-display').innerText = `得分: ${score} / ${currentQuestions.length} (${percentage}%)`;
+        
+        let msg = "";
+        if (percentage === 100) msg = "太棒了！全部答對！🎉";
+        else if (percentage >= 80) msg = "做得很好！繼續保持！👍";
+        else if (percentage >= 60) msg = "及格了，再接再厲！💪";
+        else msg = "別灰心，多練習幾次就會了！📚";
+        
+        document.getElementById('final-message').innerText = msg;
+    }
+</script>
+
+</body>
+</html>
