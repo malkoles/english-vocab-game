@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab Challenge V3</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #00acc1;
+            --light: #ecf0f1;
+            --correct: #27ae60;
+            --wrong: #c0392b;
+            --bg: #f4f6f7;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Layout */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+            position: relative;
+        }
+
+        h1 { color: var(--primary); margin-top: 0; }
+        
+        /* Home Button (Top Left) */
+        .home-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #7f8c8d;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        .home-link:hover { color: var(--accent); background: #e0f7fa; }
+        .home-link::before { content: '🏠 '; margin-right: 5px; }
+
+        /* Screens */
+        .screen { display: none; animation: fadeIn 0.4s; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- V3 Form Controls --- */
+        .control-group { 
+            margin: 25px 0; 
+            text-align: left; 
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .control-label { 
+            display: block; 
+            margin-bottom: 12px; 
+            font-weight: bold; 
+            color: var(--primary); 
+            font-size: 1.1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        /* Checkbox & Radio Grids */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Custom Checkbox/Radio Styling */
+        .option-item {
+            position: relative;
+        }
+        .option-item input {
+            display: none; /* Hide default browser input */
+        }
+        .option-item label {
+            display: block;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            color: #555;
+            text-align: center;
+        }
+        /* Checkbox Checked State */
+        .option-item input:checked + label {
+            border-color: var(--accent);
+            background-color: #e0f7fa;
+            color: #006064;
+            font-weight: bold;
+        }
+        /* Hover Effect */
+        .option-item label:hover {
+            border-color: #b2ebf2;
+        }
+
+        /* Game Elements */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .hint-box {
+            background-color: #e8f6f3;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+        .puzzle-display {
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #333;
+            margin: 25px 0;
+            word-wrap: break-word;
+        }
+
+        /* Inputs & Buttons */
+        input[type="text"] {
+            width: 70%;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--accent); }
+        
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-skip { background-color: #95a5a6; }
+        .btn-submit { background-color: var(--correct); width: 100%; font-size: 1.2rem; margin-top: 10px;}
+        .btn-restart { background-color: #f39c12; }
+        
+        #msg-area { height: 30px; margin-top: 15px; font-weight: bold; }
+        .msg-correct { color: var(--correct); }
+        .msg-wrong { color: var(--wrong); }
+
+        /* Review List */
+        .review-list {
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 20px 0;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+        .review-item { border-bottom: 1px solid #eee; padding: 10px; }
+        .review-word { color: var(--wrong); font-weight: bold; }
+        
+        footer {
+            background-color: #eee;
+            color: #777;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="container">
+        
+        <div id="start-screen" class="screen active">
+            <a href="https://game.kelegulu.com/index.html" class="home-link">Back to Home</a>
+            
+            <h1 style="margin-top: 40px;">Vocab Challenge</h1>
+            <p style="color:#666;">Unit: Body & Feelings</p>
+            
+            <div class="control-group">
+                <span class="control-label">Select Topics (可複選):</span>
+                <div class="options-list">
+                    <div class="option-item">
+                        <input type="checkbox" id="type1" name="typeOption" value="Body actions" checked>
+                        <label for="type1">Body actions</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="checkbox" id="type2" name="typeOption" value="Ways to express our emotions" checked>
+                        <label for="type2">Ways to express our emotions</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="checkbox" id="type3" name="typeOption" value="Our feelings and emotions" checked>
+                        <label for="type3">Our feelings and emotions</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">No. of Questions (題數):</span>
+                <div class="options-grid">
+                    <div class="option-item">
+                        <input type="radio" id="c10" name="countOption" value="10" checked>
+                        <label for="c10">10</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="c15" name="countOption" value="15">
+                        <label for="c15">15</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="c20" name="countOption" value="20">
+                        <label for="c20">20</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="c30" name="countOption" value="30">
+                        <label for="c30">30</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="c50" name="countOption" value="50">
+                        <label for="c50">50</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="c80" name="countOption" value="80">
+                        <label for="c80">Max</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-submit" onclick="startGame()">Start Game</button>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div style="text-align: left;">
+                <button onclick="confirmExit()" style="background:none; border:none; color:#999; cursor:pointer;">&larr; Quit Game</button>
+            </div>
+
+            <div class="status-bar">
+                <span id="progress-text">Q: 1 / 10</span>
+                <span id="score-text">Score: 0</span>
+            </div>
+
+            <div class="hint-box">
+                <div style="margin-bottom:5px; font-size:0.9rem; color:#00838f; font-weight:bold;" id="q-type">Type</div>
+                <span id="q-hint">Hint...</span>
+            </div>
+
+            <div id="puzzle" class="puzzle-display"></div>
+
+            <input type="text" id="userInput" placeholder="Type answer..." autocomplete="off">
+            
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="checkAnswer()">Submit</button>
+                <button class="btn btn-skip" onclick="skipQuestion()">IDK / Skip</button>
+            </div>
+
+            <div id="msg-area"></div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <h2>Game Over!</h2>
+            <p style="font-size:1.2rem;">Final Score: <strong id="final-score" style="color:var(--accent);">0</strong></p>
+            
+            <div id="review-container" style="display:none;">
+                <h3 style="text-align:left; color:#c0392b; font-size:1rem;">Mistakes Review (錯題本):</h3>
+                <div class="review-list" id="review-list"></div>
+            </div>
+
+            <p id="perfect-msg" style="display:none; color:var(--correct); font-weight:bold;">Perfect Score! Amazing!</p>
+
+            <button class="btn btn-restart" onclick="goHome()">Play Again</button>
+            <br><br>
+            <a href="https://game.kelegulu.com/index.html" style="color:#7f8c8d; text-decoration:none; font-size:0.9rem;">Back to Home</a>
+        </div>
+
+    </div>
+</div>
+
+<footer>
+    Designed by KL思考研究室
+</footer>
+
+<script>
+    // Data Source (完整資料)
+    const rawData = [
+        {type: "Body actions", word: "balance", hint: "(v.) to keep your body in a steady position without falling over"},
+        {type: "Body actions", word: "bend", hint: "(v.) to move the top part of your body forward and downwards"},
+        {type: "Body actions", word: "choke", hint: "(v.) to be unable to breathe properly because your throat is blocked"},
+        {type: "Body actions", word: "gesture", hint: "(v.) to make a movement with your hands or head to express an idea"},
+        {type: "Body actions", word: "hold your breath", hint: "(idiom) to stop breathing for a short time"},
+        {type: "Body actions", word: "lean", hint: "(v.) to move or bend your body in a particular direction"},
+        {type: "Body actions", word: "nod", hint: "(v.) to move your head up and down to show agreement"},
+        {type: "Body actions", word: "pinch", hint: "(v.) to press a part of someone's skin tightly so that it hurts"},
+        {type: "Body actions", word: "point", hint: "(v.) to show something by holding up one of your fingers"},
+        {type: "Body actions", word: "punch", hint: "(v.) to hit someone or something with your fist"},
+        {type: "Body actions", word: "snore", hint: "(v.) to breathe noisily while you are asleep"},
+        {type: "Body actions", word: "stretch", hint: "(v.) to make your body straight so muscles become long and tight"},
+        {type: "Body actions", word: "swallow", hint: "(v.) to make food or drink go down your throat"},
+        {type: "Body actions", word: "twist", hint: "(v.) to turn a part of your body around"},
+        {type: "Body actions", word: "wander", hint: "(v.) to walk slowly without a clear direction"},
+        {type: "Ways to express our emotions", word: "bark", hint: "(v.) to shout at someone in a forceful manner"},
+        {type: "Ways to express our emotions", word: "beg", hint: "(v.) to ask for something in an urgent way"},
+        {type: "Ways to express our emotions", word: "cheer", hint: "(v.) to shout to show happiness or support"},
+        {type: "Ways to express our emotions", word: "clap", hint: "(v.) to hit your hands together to show approval"},
+        {type: "Ways to express our emotions", word: "fidget", hint: "(v.) to keep moving your body when bored or nervous"},
+        {type: "Ways to express our emotions", word: "frown", hint: "(v.) to make a worried expression by moving eyebrows together"},
+        {type: "Ways to express our emotions", word: "laugh", hint: "(v.) to smile and make sounds showing amusement"},
+        {type: "Ways to express our emotions", word: "roar", hint: "(v.) to shout in a deep, powerful voice"},
+        {type: "Ways to express our emotions", word: "scream", hint: "(v.) to make a loud high noise when excited or frightened"},
+        {type: "Ways to express our emotions", word: "shake your head", hint: "(exp.) to move head side to side to show disapproval"},
+        {type: "Ways to express our emotions", word: "shout", hint: "(v.) to say something very loudly"},
+        {type: "Ways to express our emotions", word: "sigh", hint: "(v.) to breathe out making a long sound when tired or disappointed"},
+        {type: "Ways to express our emotions", word: "sob", hint: "(v.) to cry noisily"},
+        {type: "Ways to express our emotions", word: "whoop", hint: "(v.) to shout loudly and happily"},
+        {type: "Ways to express our emotions", word: "yell", hint: "(v.) to shout very loudly when excited or angry"},
+        {type: "Ways to express our emotions", word: "burst out", hint: "(phr. v.) to suddenly start crying or laughing"},
+        {type: "Ways to express our emotions", word: "cheer up", hint: "(phr. v.) to make someone feel less sad"},
+        {type: "Ways to express our emotions", word: "distract", hint: "(v.) to divert attention and prevent focusing"},
+        {type: "Ways to express our emotions", word: "hold back", hint: "(phr. v.) to hide your thoughts and feelings"},
+        {type: "Ways to express our emotions", word: "rant and rave", hint: "(idiom) to shout and complain angrily"},
+        {type: "Ways to express our emotions", word: "release", hint: "(v.) to get rid of negative feelings"},
+        {type: "Ways to express our emotions", word: "roll your eyes", hint: "(exp.) to move eyes upwards to show annoyance"},
+        {type: "Ways to express our emotions", word: "shiver", hint: "(v.) to shake body slightly because of cold or fear"},
+        {type: "Ways to express our emotions", word: "shrug", hint: "(v.) to raise shoulders to show you don't know or care"},
+        {type: "Ways to express our emotions", word: "suppress", hint: "(v.) to refrain from feeling an emotion"},
+        {type: "Our feelings and emotions", word: "annoyed", hint: "(adj.) feeling slightly angry or irritated"},
+        {type: "Our feelings and emotions", word: "guilty", hint: "(adj.) feeling bad because of something you have done"},
+        {type: "Our feelings and emotions", word: "calm", hint: "(adj.) quiet and without strong feeling"},
+        {type: "Our feelings and emotions", word: "confident", hint: "(adj.) feeling sure about your ability"},
+        {type: "Our feelings and emotions", word: "confused", hint: "(adj.) unable to think clearly"},
+        {type: "Our feelings and emotions", word: "contented", hint: "(adj.) feeling happy and satisfied"},
+        {type: "Our feelings and emotions", word: "curious", hint: "(adj.) having a strong desire to know something"},
+        {type: "Our feelings and emotions", word: "depressed", hint: "(adj.) very sad and without hope"},
+        {type: "Our feelings and emotions", word: "disappointed", hint: "(adj.) unhappy because hopes were not met"},
+        {type: "Our feelings and emotions", word: "embarrassed", hint: "(adj.) feeling ashamed in a social situation"},
+        {type: "Our feelings and emotions", word: "fearful", hint: "(adj.) frightened or worried"},
+        {type: "Our feelings and emotions", word: "grateful", hint: "(adj.) wanting to thank someone"},
+        {type: "Our feelings and emotions", word: "hopeful", hint: "(adj.) having hope"},
+        {type: "Our feelings and emotions", word: "jealous", hint: "(adj.) unhappy because someone has what you want"},
+        {type: "Our feelings and emotions", word: "jolly", hint: "(adj.) happy and cheerful"},
+        {type: "Our feelings and emotions", word: "joyful", hint: "(adj.) feeling great pleasure"},
+        {type: "Our feelings and emotions", word: "negative emotions", hint: "(phr.) any feeling which makes you sad"},
+        {type: "Our feelings and emotions", word: "nervous", hint: "(adj.) becoming worried easily"},
+        {type: "Our feelings and emotions", word: "pride", hint: "(n.) a feeling of satisfaction in what you have done"},
+        {type: "Our feelings and emotions", word: "relaxed", hint: "(adj.) feeling calm and comfortable"},
+        {type: "Our feelings and emotions", word: "relieved", hint: "(adj.) happy because worry is gone"},
+        {type: "Our feelings and emotions", word: "smiley", hint: "(adj.) smiling and cheerful"},
+        {type: "Our feelings and emotions", word: "stressed", hint: "(adj.) so worried and tired you cannot relax"},
+        {type: "Our feelings and emotions", word: "unsettled", hint: "(adj.) worried or excited so you feel upset"},
+        {type: "Our feelings and emotions", word: "upset", hint: "(adj.) unhappy and worried"},
+        {type: "Our feelings and emotions", word: "worried", hint: "(adj.) unhappy because of thinking about problems"},
+        {type: "Our feelings and emotions", word: "at ease", hint: "(idiom) feeling confident and relaxed"},
+        {type: "Our feelings and emotions", word: "despair", hint: "(n.) a feeling of lost hope"},
+        {type: "Our feelings and emotions", word: "discouragement", hint: "(n.) lost confidence or enthusiasm"},
+        {type: "Our feelings and emotions", word: "disgusted", hint: "(adj.) feeling extreme dislike"},
+        {type: "Our feelings and emotions", word: "eager", hint: "(adj.) very keen and excited about future"},
+        {type: "Our feelings and emotions", word: "ecstatic", hint: "(adj.) feeling extremely happy"},
+        {type: "Our feelings and emotions", word: "effusive", hint: "(adj.) showing strong excited feelings"},
+        {type: "Our feelings and emotions", word: "enthusiastic", hint: "(adj.) showing excitement and interest"},
+        {type: "Our feelings and emotions", word: "frustrated", hint: "(adj.) feeling upset because you cannot achieve goals"},
+        {type: "Our feelings and emotions", word: "hostile", hint: "(adj.) very unfriendly or aggressive"},
+        {type: "Our feelings and emotions", word: "irritated", hint: "(adj.) feeling annoyed and impatient"},
+        {type: "Our feelings and emotions", word: "pessimistic", hint: "(adj.) believing the worst will happen"},
+        {type: "Our feelings and emotions", word: "suspicious", hint: "(adj.) not willing to trust"},
+        {type: "Our feelings and emotions", word: "terror", hint: "(n.) a feeling of extreme fear"}
+    ];
+
+    let gameQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let wrongAnswers = [];
+    let isWaiting = false;
+
+    const screens = {
+        start: document.getElementById('start-screen'),
+        game: document.getElementById('game-screen'),
+        result: document.getElementById('result-screen')
+    };
+
+    function showScreen(name) {
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        screens[name].classList.add('active');
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function startGame() {
+        // 1. Get Selected Types (Checkboxes)
+        const checkedTypes = Array.from(document.querySelectorAll('input[name="typeOption"]:checked'))
+                                  .map(cb => cb.value);
+
+        if (checkedTypes.length === 0) {
+            alert("Please select at least one topic!");
+            return;
+        }
+
+        // 2. Get Count (Radio)
+        const countInput = document.querySelector('input[name="countOption"]:checked');
+        const count = countInput ? parseInt(countInput.value) : 10;
+
+        // 3. Filter Data
+        let filtered = rawData.filter(item => checkedTypes.includes(item.type));
+        
+        if (filtered.length === 0) {
+            alert("No words found for selected topics.");
+            return;
+        }
+
+        // 4. Randomize
+        shuffle(filtered);
+        gameQuestions = filtered.slice(0, count);
+
+        // 5. Init Game
+        currentIndex = 0;
+        score = 0;
+        wrongAnswers = [];
+        isWaiting = false;
+        showScreen('game');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const q = gameQuestions[currentIndex];
+        
+        document.getElementById('progress-text').innerText = `Q: ${currentIndex + 1} / ${gameQuestions.length}`;
+        document.getElementById('score-text').innerText = `Score: ${score}`;
+        
+        document.getElementById('q-type').innerText = q.type;
+        document.getElementById('q-hint').innerText = q.hint;
+        
+        // Reset Inputs
+        const input = document.getElementById('userInput');
+        input.value = "";
+        input.disabled = false;
+        input.focus();
+        
+        document.getElementById('msg-area').innerText = "";
+        document.getElementById('msg-area').className = "";
+
+        // Generate Puzzle (B _ _ _   O _ _)
+        const words = q.word.split(' ');
+        let puzzleHTML = words.map(w => {
+            let first = w.charAt(0).toUpperCase();
+            let rest = " _".repeat(w.length - 1);
+            return `<span style="white-space:nowrap">${first}${rest}</span>`;
+        }).join('&nbsp;&nbsp;');
+        
+        document.getElementById('puzzle').innerHTML = puzzleHTML;
+        isWaiting = false;
+    }
+
+    function checkAnswer() {
+        if (isWaiting) return;
+        
+        const input = document.getElementById('userInput');
+        const userAns = input.value.trim().toLowerCase();
+        const correctAns = gameQuestions[currentIndex].word.toLowerCase();
+
+        if (!userAns) return;
+
+        isWaiting = true;
+        input.disabled = true;
+
+        const msgDiv = document.getElementById('msg-area');
+
+        if (userAns === correctAns) {
+            score += 10;
+            document.getElementById('score-text').innerText = `Score: ${score}`;
+            msgDiv.innerText = "Correct! 🎉";
+            msgDiv.className = "msg-correct";
+            setTimeout(nextQuestion, 1000);
+        } else {
+            wrongAnswers.push(gameQuestions[currentIndex]);
+            msgDiv.innerText = `The answer was: ${gameQuestions[currentIndex].word}`;
+            msgDiv.className = "msg-wrong";
+            setTimeout(nextQuestion, 2500);
+        }
+    }
+
+    function skipQuestion() {
+        if (isWaiting) return;
+        isWaiting = true;
+        document.getElementById('userInput').disabled = true;
+        
+        const q = gameQuestions[currentIndex];
+        wrongAnswers.push(q);
+        
+        const msgDiv = document.getElementById('msg-area');
+        msgDiv.innerText = `Answer: ${q.word}`;
+        msgDiv.className = "msg-wrong";
+        
+        setTimeout(nextQuestion, 2500);
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < gameQuestions.length) {
+            loadQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        showScreen('result');
+        document.getElementById('final-score').innerText = score;
+
+        const listDiv = document.getElementById('review-list');
+        listDiv.innerHTML = "";
+        
+        if (wrongAnswers.length > 0) {
+            document.getElementById('perfect-msg').style.display = 'none';
+            document.getElementById('review-container').style.display = 'block';
+            
+            wrongAnswers.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'review-item';
+                item.innerHTML = `
+                    <div style="font-size:0.85rem; color:#999;">${q.type}</div>
+                    <div class="review-word">${q.word}</div>
+                    <div style="font-size:0.9rem; color:#555;">${q.hint}</div>
+                `;
+                listDiv.appendChild(item);
+            });
+        } else {
+            document.getElementById('review-container').style.display = 'none';
+            document.getElementById('perfect-msg').style.display = 'block';
+        }
+    }
+
+    function goHome() {
+        showScreen('start');
+    }
+
+    function confirmExit() {
+        if(confirm("Exit game and return to menu?")) {
+            goHome();
+        }
+    }
+
+    document.getElementById('userInput').addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            checkAnswer();
+        }
+    });
+
+</script>
+
+</body>
+</html>
