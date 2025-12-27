@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Vocabulary Quiz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Home Button */
+        .home-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .home-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Containers */
+        .container {
+            flex: 1;
+            max-width: 800px;
+            margin: 60px auto 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            width: 90%;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 20px; }
+        h2 { color: #34495e; }
+
+        /* Setup Screen */
+        .setup-section {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .topic-item {
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .topic-item:hover { background: #e2e6ea; }
+        .topic-item input { margin-right: 10px; transform: scale(1.2); }
+        
+        .count-select {
+            margin: 20px 0;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button.start-btn, button.replay-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button.start-btn:hover, button.replay-btn:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        /* Game Screen */
+        #game-screen { display: none; }
+        .progress {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .question-box {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+        .option-btn {
+            background: white;
+            border: 2px solid #dee2e6;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #495057;
+        }
+        .option-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        .option-btn.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        /* Result Screen */
+        #result-screen { display: none; }
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 20px 0;
+        }
+        .mistakes-list {
+            text-align: left;
+            margin-top: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .mistake-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .mistake-eng { font-weight: bold; font-size: 18px; color: #dc3545; }
+        .mistake-correct { color: #28a745; margin-left: 10px; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #6c757d;
+            font-size: 12px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="https://game.kelegulu.com" class="home-btn">🏠 Home</a>
+
+    <div class="container" id="setup-screen">
+        <h1>Science Vocabulary Challenge</h1>
+        <h2>Select Topics (Form 1)</h2>
+        
+        <div class="setup-section">
+            <div style="margin-bottom: 10px;">
+                <button onclick="toggleAllTopics(true)" style="font-size:12px; padding:5px 10px;">Select All</button>
+                <button onclick="toggleAllTopics(false)" style="font-size:12px; padding:5px 10px;">Clear All</button>
+            </div>
+            <div class="topic-grid" id="topic-container">
+                </div>
+        </div>
+
+        <div class="setup-section" style="text-align: center;">
+            <label for="q-count">Number of Questions:</label>
+            <select id="q-count" class="count-select">
+                <option value="10">10 題</option>
+                <option value="20">20 題</option>
+                <option value="30">30 題</option>
+                <option value="50">50 題</option>
+                <option value="80">80 題</option>
+            </select>
+            <br>
+            <button class="start-btn" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <div class="container" id="game-screen">
+        <div class="progress">Question <span id="current-q">1</span> / <span id="total-q">10</span></div>
+        <div class="question-box" id="question-text">Loading...</div>
+        <div class="options-grid" id="options-container">
+            </div>
+    </div>
+
+    <div class="container" id="result-screen">
+        <h1>Game Over!</h1>
+        <div class="score-display">Score: <span id="final-score">0</span>%</div>
+        <p>You got <span id="score-num">0</span> out of <span id="score-total">0</span> correct.</p>
+        
+        <button class="replay-btn" onclick="location.reload()">Replay 重玩</button>
+
+        <div id="mistakes-container" class="mistakes-list" style="display:none;">
+            <h3>Review Incorrect Answers:</h3>
+            <div id="mistakes-content"></div>
+        </div>
+    </div>
+
+    <footer>
+        Designed by KL思考研究室
+    </footer>
+
+    <script>
+        // Data from your Google Sheet
+        const rawData = [
+            {topic: "Learning about science", eng: "science", chi: "科學"},
+            {topic: "Learning about science", eng: "scientist", chi: "科學家"},
+            {topic: "Learning about science", eng: "physics", chi: "物理學"},
+            {topic: "Learning about science", eng: "chemistry", chi: "化學"},
+            {topic: "Learning about science", eng: "biology", chi: "生物學"},
+            {topic: "Practice of Science", eng: "scientific investigation", chi: "科學探究／科學研究"},
+            {topic: "Practice of Science", eng: "observe", chi: "觀察"},
+            {topic: "Practice of Science", eng: "hypothesis", chi: "假設"},
+            {topic: "Practice of Science", eng: "experiment", chi: "實驗"},
+            {topic: "Practice of Science", eng: "measure", chi: "量度"},
+            {topic: "Practice of Science", eng: "record", chi: "記錄"},
+            {topic: "Practice of Science", eng: "analyse", chi: "分析"},
+            {topic: "Practice of Science", eng: "conclusion", chi: "結論"},
+            {topic: "Practice of Science", eng: "fair test", chi: "公平測試"},
+            {topic: "Practice of Science", eng: "factors", chi: "因素"},
+            {topic: "Practice of Science", eng: "independent variable", chi: "自變量"},
+            {topic: "Practice of Science", eng: "controlled variables", chi: "控制變量"},
+            {topic: "Practice of Science", eng: "dependent variable", chi: "應變量"},
+            {topic: "Practice of Science", eng: "classifying", chi: "分類"},
+            {topic: "Practice of Science", eng: "pattern seeking", chi: "尋找模式"},
+            {topic: "Practice of Science", eng: "model building", chi: "建構模型"},
+            {topic: "Laboratory Safety", eng: "fire blanket", chi: "防火氈"},
+            {topic: "Laboratory Safety", eng: "fire extinguisher", chi: "滅火筒"},
+            {topic: "Laboratory Safety", eng: "sand bucket", chi: "沙桶"},
+            {topic: "Laboratory Safety", eng: "hazard warning symbols", chi: "危險警告符號"},
+            {topic: "Laboratory Safety", eng: "flammable", chi: "易燃的"},
+            {topic: "Laboratory Safety", eng: "explosive", chi: "爆炸性的"},
+            {topic: "Laboratory Safety", eng: "corrosive", chi: "腐蝕性的"},
+            {topic: "Laboratory Safety", eng: "toxic", chi: "有毒的"},
+            {topic: "Laboratory Safety", eng: "harmful", chi: "有害的"},
+            {topic: "Laboratory Safety", eng: "irritant", chi: "刺激性的"},
+            {topic: "Laboratory Safety", eng: "chemicals", chi: "化學品"},
+            {topic: "Laboratory Safety", eng: "fire triangle", chi: "燃燒三角"},
+            {topic: "Laboratory Safety", eng: "fuel", chi: "燃料"},
+            {topic: "Laboratory Safety", eng: "oxygen", chi: "氧氣"},
+            {topic: "Laboratory Safety", eng: "high temperature", chi: "高溫"},
+            {topic: "Laboratory apparatus", eng: "apparatus", chi: "儀器／器材"},
+            {topic: "Laboratory apparatus", eng: "beaker", chi: "燒杯"},
+            {topic: "Laboratory apparatus", eng: "reagent bottle", chi: "試劑瓶"},
+            {topic: "Laboratory apparatus", eng: "measuring cylinder", chi: "量筒"},
+            {topic: "Laboratory apparatus", eng: "test tube", chi: "試管"},
+            {topic: "Laboratory apparatus", eng: "conical flask", chi: "錐形瓶／錐形燒瓶"},
+            {topic: "Laboratory apparatus", eng: "dropping bottle", chi: "滴瓶"},
+            {topic: "Laboratory apparatus", eng: "watch glass", chi: "表面皿"},
+            {topic: "Laboratory apparatus", eng: "boiling tube", chi: "沸騰管／大試管"},
+            {topic: "Laboratory apparatus", eng: "rubber stopper", chi: "膠塞"},
+            {topic: "Laboratory apparatus", eng: "gas jar", chi: "集氣瓶"},
+            {topic: "Laboratory apparatus", eng: "evaporating dish", chi: "蒸發皿"},
+            {topic: "Laboratory apparatus", eng: "Bunsen burner", chi: "本生燈"},
+            {topic: "Laboratory apparatus", eng: "heat-proof mat", chi: "耐熱墊"},
+            {topic: "Laboratory apparatus", eng: "spatula", chi: "小匙／刮勺"},
+            {topic: "Laboratory apparatus", eng: "filter paper", chi: "濾紙"},
+            {topic: "Laboratory apparatus", eng: "stand and clamp", chi: "支架和夾鉗"},
+            {topic: "Laboratory apparatus", eng: "wire gauze", chi: "石棉網／金屬網"},
+            {topic: "Laboratory apparatus", eng: "tongs", chi: "夾鉗／鉗子"},
+            {topic: "Laboratory apparatus", eng: "test tube rack", chi: "試管架"},
+            {topic: "Laboratory apparatus", eng: "dropper", chi: "滴管"},
+            {topic: "Laboratory apparatus", eng: "tripod", chi: "三腳架"},
+            {topic: "Laboratory apparatus", eng: "test tube holder", chi: "試管夾"},
+            {topic: "Laboratory apparatus", eng: "funnel", chi: "漏斗"},
+            {topic: "Laboratory apparatus", eng: "glass rod", chi: "玻璃棒"},
+            {topic: "Using measuring instruments", eng: "metre (m)", chi: "米 (m)"},
+            {topic: "Using measuring instruments", eng: "kilometre (km)", chi: "千米／公里 (km)"},
+            {topic: "Using measuring instruments", eng: "centimetre (cm)", chi: "厘米 (cm)"},
+            {topic: "Using measuring instruments", eng: "millimetre (mm)", chi: "毫米 (mm)"},
+            {topic: "Using measuring instruments", eng: "millilitre (mL)", chi: "毫升 (mL)"},
+            {topic: "Using measuring instruments", eng: "volume", chi: "體積"},
+            {topic: "Using measuring instruments", eng: "cubic metre (m³)", chi: "立方米 (m³)"},
+            {topic: "Using measuring instruments", eng: "cubic centimetre (cm³)", chi: "立方厘米 (cm³)"},
+            {topic: "Using measuring instruments", eng: "litre (L)", chi: "公升 (L)"},
+            {topic: "Using measuring instruments", eng: "meniscus", chi: "液面彎月面"},
+            {topic: "Using measuring instruments", eng: "displacement can", chi: "排水量筒／排水罐"},
+            {topic: "Using measuring instruments", eng: "balance", chi: "天平"},
+            {topic: "Using measuring instruments", eng: "gram (g)", chi: "克 (g)"},
+            {topic: "Using measuring instruments", eng: "mass", chi: "質量"},
+            {topic: "Using measuring instruments", eng: "milligram (mg)", chi: "毫克 (mg)"},
+            {topic: "Using measuring instruments", eng: "kilogram (kg)", chi: "千克／公斤 (kg)"},
+            {topic: "Using measuring instruments", eng: "re-zero (tare)", chi: "歸零"},
+            {topic: "Using measuring instruments", eng: "degrees Celsius", chi: "攝氏度"},
+            {topic: "Using measuring instruments", eng: "thermometer", chi: "溫度計"},
+            {topic: "Using measuring instruments", eng: "temperature sensor", chi: "溫度感應器"},
+            {topic: "Using measuring instruments", eng: "data-logger", chi: "數據記錄器"},
+            {topic: "Using measuring instruments", eng: "stopwatch", chi: "秒錶"},
+            {topic: "Using measuring instruments", eng: "hour", chi: "小時"},
+            {topic: "Using measuring instruments", eng: "second", chi: "秒"},
+            {topic: "Using measuring instruments", eng: "minute (min)", chi: "分鐘 (min)"},
+            {topic: "Using measuring instruments", eng: "error", chi: "誤差"},
+            {topic: "Using measuring instruments", eng: "chimney", chi: "煙囪"},
+            {topic: "Using measuring instruments", eng: "rubber tubing", chi: "橡膠喉管"},
+            {topic: "Using measuring instruments", eng: "collar", chi: "頸圈／環"},
+            {topic: "Using measuring instruments", eng: "base", chi: "底座"},
+            {topic: "Using measuring instruments", eng: "air hole", chi: "進氣孔"},
+            {topic: "Using measuring instruments", eng: "luminous flame", chi: "亮焰／黃色火焰"},
+            {topic: "Using measuring instruments", eng: "non-luminous flame", chi: "非亮焰／藍色火焰"},
+            {topic: "Using measuring instruments", eng: "strike back", chi: "回燃"},
+            {topic: "The Water cycle", eng: "physical states", chi: "物理狀態"},
+            {topic: "The Water cycle", eng: "solid", chi: "固體"},
+            {topic: "The Water cycle", eng: "liquid", chi: "液體"},
+            {topic: "The Water cycle", eng: "gas", chi: "氣體"},
+            {topic: "The Water cycle", eng: "water vapour", chi: "水蒸氣"},
+            {topic: "The Water cycle", eng: "melting", chi: "融化"},
+            {topic: "The Water cycle", eng: "melting point", chi: "熔點"},
+            {topic: "The Water cycle", eng: "freezing", chi: "結冰／凝固"},
+            {topic: "The Water cycle", eng: "freezing point", chi: "凝固點／冰點"},
+            {topic: "The Water cycle", eng: "boiling", chi: "沸騰"},
+            {topic: "The Water cycle", eng: "evaporation", chi: "蒸發"},
+            {topic: "The Water cycle", eng: "boiling point", chi: "沸點"},
+            {topic: "The Water cycle", eng: "condensation", chi: "凝結"},
+            {topic: "The Water cycle", eng: "water cycle", chi: "水循環"},
+            {topic: "The Water cycle", eng: "steam", chi: "蒸汽／水蒸氣"},
+            {topic: "The Water cycle", eng: "rate of evaporation", chi: "蒸發速率"},
+            {topic: "Dissolving", eng: "dissolve", chi: "溶解"},
+            {topic: "Dissolving", eng: "solvent", chi: "溶劑"},
+            {topic: "Dissolving", eng: "solution", chi: "溶液"},
+            {topic: "Dissolving", eng: "solute", chi: "溶質"},
+            {topic: "Dissolving", eng: "soluble", chi: "可溶的"},
+            {topic: "Dissolving", eng: "universal solvent", chi: "萬能溶劑"},
+            {topic: "Dissolving", eng: "insoluble", chi: "不溶的"},
+            {topic: "Dissolving", eng: "rate of dissolving", chi: "溶解速率"},
+            {topic: "Dissolving", eng: "solubility", chi: "溶解度"},
+            {topic: "Water purification", eng: "E. coli", chi: "大腸桿菌"},
+            {topic: "Water purification", eng: "microorganism", chi: "微生物"},
+            {topic: "Water purification", eng: "impurity", chi: "雜質"},
+            {topic: "Water purification", eng: "alum", chi: "明礬"},
+            {topic: "Water purification", eng: "water purification", chi: "淨水／水的淨化"},
+            {topic: "Water purification", eng: "Amoeba", chi: "變形蟲"},
+            {topic: "Water purification", eng: "filtration", chi: "過濾"},
+            {topic: "Water purification", eng: "sediment", chi: "沉積物／沉澱物"},
+            {topic: "Water purification", eng: "sedimentation", chi: "沉澱作用"},
+            {topic: "Water purification", eng: "filtrate", chi: "濾液"},
+            {topic: "Water purification", eng: "filter column", chi: "濾柱"},
+            {topic: "Water purification", eng: "filter paper", chi: "濾紙"},
+            {topic: "Water purification", eng: "distillation", chi: "蒸餾"},
+            {topic: "Water purification", eng: "distilled water", chi: "蒸餾水"},
+            {topic: "Water purification", eng: "residue", chi: "殘渣／剩餘物"},
+            {topic: "Further treatment of drinking water", eng: "chlorine", chi: "氯"},
+            {topic: "Further treatment of drinking water", eng: "chlorination", chi: "加氯處理／氯化作用"},
+            {topic: "Further treatment of drinking water", eng: "ozone", chi: "臭氧"},
+            {topic: "Further treatment of drinking water", eng: "ultraviolet light", chi: "紫外線"},
+            {topic: "Further treatment of drinking water", eng: "fluoride", chi: "氟化物"},
+            {topic: "Further treatment of drinking water", eng: "fluoridation", chi: "加氟處理／氟化作用"},
+            {topic: "Water conservation and pollution", eng: "pollutant", chi: "污染物"},
+            {topic: "Water conservation and pollution", eng: "water pollution", chi: "水污染"}
+        ];
+
+        let gameQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let mistakes = [];
+
+        // Init Topics
+        const topics = [...new Set(rawData.map(item => item.topic))];
+        const topicContainer = document.getElementById('topic-container');
+        topics.forEach(topic => {
+            const div = document.createElement('div');
+            div.className = 'topic-item';
+            div.innerHTML = `
+                <input type="checkbox" id="${topic}" value="${topic}" checked>
+                <label for="${topic}">${topic}</label>
+            `;
+            // Toggle checkbox when clicking the div
+            div.onclick = (e) => {
+                if(e.target.tagName !== 'INPUT') {
+                    const cb = div.querySelector('input');
+                    cb.checked = !cb.checked;
+                }
+            };
+            topicContainer.appendChild(div);
+        });
+
+        function toggleAllTopics(checked) {
+            document.querySelectorAll('#topic-container input[type="checkbox"]').forEach(cb => {
+                cb.checked = checked;
+            });
+        }
+
+        function startGame() {
+            // Get selected topics
+            const selectedTopics = Array.from(document.querySelectorAll('#topic-container input:checked'))
+                                        .map(cb => cb.value);
+            
+            if (selectedTopics.length === 0) {
+                alert("Please select at least one topic!");
+                return;
+            }
+
+            // Filter data
+            const pool = rawData.filter(item => selectedTopics.includes(item.topic));
+            
+            // Get question count
+            const count = parseInt(document.getElementById('q-count').value);
+            if (pool.length < count) {
+                alert(`Selected topics only have ${pool.length} words. Please reduce question count or select more topics.`);
+                return;
+            }
+
+            // Randomize and slice
+            gameQuestions = pool.sort(() => 0.5 - Math.random()).slice(0, count);
+            
+            currentIndex = 0;
+            score = 0;
+            mistakes = [];
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('total-q').innerText = count;
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = gameQuestions[currentIndex];
+            document.getElementById('current-q').innerText = currentIndex + 1;
+            document.getElementById('question-text').innerText = q.eng;
+            
+            // Prepare options: 1 correct + 3 wrong
+            const wrongOptions = rawData
+                .filter(item => item.chi !== q.chi) // Ensure distinct answer
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3)
+                .map(item => item.chi);
+            
+            const options = [q.chi, ...wrongOptions].sort(() => 0.5 - Math.random());
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, q.chi, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, correct, btnElement) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+
+            if (selected === correct) {
+                btnElement.classList.add('correct');
+                score++;
+            } else {
+                btnElement.classList.add('wrong');
+                // Highlight correct one
+                buttons.forEach(b => {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+                mistakes.push({
+                    eng: gameQuestions[currentIndex].eng,
+                    correct: correct,
+                    wrong: selected
+                });
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < gameQuestions.length) {
+                    loadQuestion();
+                } else {
+                    showResult();
+                }
+            }, 1500);
+        }
+
+        function showResult() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            const total = gameQuestions.length;
+            const percentage = Math.round((score / total) * 100);
+            
+            document.getElementById('final-score').innerText = percentage;
+            document.getElementById('score-num').innerText = score;
+            document.getElementById('score-total').innerText = total;
+
+            if (mistakes.length > 0) {
+                const list = document.getElementById('mistakes-content');
+                list.innerHTML = '';
+                mistakes.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'mistake-item';
+                    div.innerHTML = `
+                        <div class="mistake-eng">${m.eng}</div>
+                        <div>Your answer: <span style="text-decoration: line-through; color: #999;">${m.wrong}</span></div>
+                        <div>Correct: <span class="mistake-correct">${m.correct}</span></div>
+                    `;
+                    list.appendChild(div);
+                });
+                document.getElementById('mistakes-container').style.display = 'block';
+            } else {
+                document.getElementById('mistakes-container').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
