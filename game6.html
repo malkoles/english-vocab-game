@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Geog Vocab Quiz</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .home-btn {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .home-btn:hover {
+            background-color: rgba(255,255,255,0.4);
+        }
+
+        /* Main Container */
+        .container {
+            flex: 1;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            width: 90%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        h1, h2 { color: #333; }
+        
+        /* Setup Screen */
+        .unit-selector {
+            text-align: left;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .checkbox-label:hover { background: #e9ecef; }
+        .checkbox-label input { margin-right: 10px; transform: scale(1.2); }
+
+        .count-selector {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .count-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--primary-color);
+            background: transparent;
+            color: var(--primary-color);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .count-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .start-btn, .replay-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .start-btn:hover { transform: scale(1.05); }
+        .start-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Quiz Screen */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .question-box {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 30px 0;
+            min-height: 60px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #444;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+
+        .option-btn.correct { background: var(--success-color); color: white; border-color: var(--success-color); }
+        .option-btn.wrong { background: var(--error-color); color: white; border-color: var(--error-color); }
+
+        /* Result Screen */
+        .score-display {
+            font-size: 48px;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .mistakes-list {
+            text-align: left;
+            margin-top: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .mistake-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+
+        .mistake-q { font-weight: bold; color: #333; font-size: 18px; }
+        .mistake-wrong { color: var(--error-color); }
+        .mistake-correct { color: var(--success-color); font-weight: bold; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 14px;
+            border-top: 1px solid #ddd;
+            background: white;
+            margin-top: auto;
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="https://game.kelegulu.com" class="home-btn">
+            🏠 Home
+        </a>
+        <span style="margin-left: auto; font-weight: bold;">Geography Vocab Challenge</span>
+    </header>
+
+    <div class="container">
+        
+        <div id="setup-screen" class="card">
+            <h1>Geography Quiz Setup</h1>
+            <p>Select the units you want to study:</p>
+            
+            <div id="unit-list" class="unit-selector">
+                </div>
+
+            <p>How many questions?</p>
+            <div class="count-selector">
+                <button class="count-btn active" onclick="setQCount(10)">10</button>
+                <button class="count-btn" onclick="setQCount(20)">20</button>
+                <button class="count-btn" onclick="setQCount(30)">30</button>
+                <button class="count-btn" onclick="setQCount(50)">50</button>
+                <button class="count-btn" onclick="setQCount(80)">80</button>
+            </div>
+
+            <button class="start-btn" onclick="startGame()">Start Quiz</button>
+        </div>
+
+        <div id="quiz-screen" class="card hidden">
+            <div class="quiz-header">
+                <span id="progress-text">Question 1/10</span>
+                <span id="score-text">Score: 0</span>
+            </div>
+            
+            <div class="question-box" id="question-text">
+                Apple
+            </div>
+
+            <div class="options-grid" id="options-container">
+                </div>
+        </div>
+
+        <div id="result-screen" class="card hidden">
+            <h2>Quiz Completed!</h2>
+            <div class="score-display" id="final-score">80/100</div>
+            <p id="final-msg">Great job!</p>
+            
+            <button class="replay-btn" onclick="resetGame()">Replay 重玩</button>
+
+            <div id="mistakes-container" class="hidden">
+                <h3>Review Mistakes (錯題檢討)</h3>
+                <div class="mistakes-list" id="mistakes-list">
+                    </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        Designed by KL思考研究室
+    </footer>
+
+    <script>
+        // --- DATA REPOSITORY ---
+        // Based on the user's provided context and typical F1 Geog curriculum
+        const vocabDB = {
+            "Unit 1: Position & Earth (地球位置)": [
+                { en: "Latitude", zh: "緯度" },
+                { en: "Longitude", zh: "經度" },
+                { en: "Equator", zh: "赤道" },
+                { en: "Prime Meridian", zh: "本初子午線" },
+                { en: "Northern Hemisphere", zh: "北半球" },
+                { en: "Southern Hemisphere", zh: "南半球" },
+                { en: "Continent", zh: "大洲" },
+                { en: "Ocean", zh: "大洋" },
+                { en: "Arctic Circle", zh: "北極圈" },
+                { en: "Antarctic Circle", zh: "南極圈" },
+                { en: "Tropic of Cancer", zh: "北回歸線" },
+                { en: "Tropic of Capricorn", zh: "南回歸線" },
+                { en: "Coordinates", zh: "座標" },
+                { en: "Location", zh: "位置" }
+            ],
+            "Unit 2: Urban & Rural (城鄉差異)": [
+                { en: "Urban area", zh: "市區" },
+                { en: "Rural area", zh: "郊區" },
+                { en: "Land use", zh: "土地利用" },
+                { en: "Residential", zh: "住宅" },
+                { en: "Commercial", zh: "商業" },
+                { en: "Industrial", zh: "工業" },
+                { en: "Institutional", zh: "機構 / 社區設施" },
+                { en: "Open space", zh: "休憩用地" },
+                { en: "Transport", zh: "交通" },
+                { en: "Mixed land use", zh: "混合土地利用" },
+                { en: "Population density", zh: "人口密度" },
+                { en: "Farming", zh: "耕作" },
+                { en: "Village", zh: "村落" },
+                { en: "High-density", zh: "高密度" },
+                { en: "New Town", zh: "新市鎮" }
+            ],
+            "Unit 3: Map Reading (地圖閱讀)": [
+                { en: "Map", zh: "地圖" },
+                { en: "Scale", zh: "比例尺" },
+                { en: "Statement scale", zh: "文字比例尺" },
+                { en: "Representative fraction", zh: "分數比例尺" },
+                { en: "Linear scale", zh: "直線比例尺" },
+                { en: "Direction", zh: "方向" },
+                { en: "Compass", zh: "羅盤 / 指南針" },
+                { en: "Bearing", zh: "方位角" },
+                { en: "Reduced bearing", zh: "象限角" },
+                { en: "Grid reference", zh: "格網座標" },
+                { en: "Eastings", zh: "東行線" },
+                { en: "Northings", zh: "北行線" },
+                { en: "Conventional signs", zh: "慣用符號" },
+                { en: "Plan", zh: "平面圖" },
+                { en: "Aerial photo", zh: "航空照片" }
+            ],
+            "Unit 7: CBD (中心商業區)": [
+                { en: "CBD (Central Business District)", zh: "中心商業區" },
+                { en: "Accessibility", zh: "可達度 / 交通便利程度" },
+                { en: "Land rent", zh: "地租" },
+                { en: "High order goods", zh: "高階商品" },
+                { en: "Low order goods", zh: "低階商品" },
+                { en: "Department store", zh: "百貨公司" },
+                { en: "Specialized service", zh: "專門服務" },
+                { en: "Vertical zoning", zh: "垂直分區" },
+                { en: "Traffic congestion", zh: "交通擠塞" },
+                { en: "Pedestrian", zh: "行人" },
+                { en: "Skyscraper", zh: "摩天大廈" },
+                { en: "Reclamation", zh: "填海" }
+            ]
+        };
+
+        // --- STATE VARIABLES ---
+        let selectedCount = 10;
+        let selectedUnits = [];
+        let gameQueue = [];
+        let currentIndex = 0;
+        let score = 0;
+        let mistakes = [];
+        let canClick = true;
+
+        // --- INIT ---
+        window.onload = function() {
+            const unitList = document.getElementById('unit-list');
+            for (let unit in vocabDB) {
+                const label = document.createElement('label');
+                label.className = 'checkbox-label';
+                label.innerHTML = `<input type="checkbox" value="${unit}" checked> ${unit}`;
+                unitList.appendChild(label);
+            }
+        };
+
+        // --- SETUP FUNCTIONS ---
+        function setQCount(num) {
+            selectedCount = num;
+            document.querySelectorAll('.count-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.innerText) === num) btn.classList.add('active');
+            });
+        }
+
+        function startGame() {
+            // 1. Get Selected Units
+            selectedUnits = [];
+            const checkboxes = document.querySelectorAll('#unit-list input:checked');
+            checkboxes.forEach(cb => selectedUnits.push(cb.value));
+
+            if (selectedUnits.length === 0) {
+                alert("Please select at least one unit! (請至少選擇一個單元)");
+                return;
+            }
+
+            // 2. Build Pool
+            let pool = [];
+            let allDistractors = [];
+            
+            // Add words from selected units to the question pool
+            selectedUnits.forEach(unit => {
+                pool = pool.concat(vocabDB[unit]);
+            });
+
+            // For distractors (wrong answers), we use ALL units to make it harder/better
+            for (let unit in vocabDB) {
+                allDistractors = allDistractors.concat(vocabDB[unit]);
+            }
+
+            // 3. Shuffle and Slice
+            shuffleArray(pool);
+            gameQueue = pool.slice(0, Math.min(selectedCount, pool.length)); // Cap at max available
+            
+            // 4. Attach distractors to each question object for easy access
+            gameQueue = gameQueue.map(q => {
+                return {
+                    question: q.en,
+                    answer: q.zh,
+                    options: generateOptions(q.zh, allDistractors)
+                };
+            });
+
+            // 5. Reset State
+            currentIndex = 0;
+            score = 0;
+            mistakes = [];
+            
+            // 6. UI Switch
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function generateOptions(correctAnswer, sourceArray) {
+            let options = [correctAnswer];
+            let tempSource = [...sourceArray];
+            
+            // Remove duplicates and correct answer from source
+            // We want unique strings for options
+            let uniqueSource = [...new Set(tempSource.map(item => item.zh))];
+            uniqueSource = uniqueSource.filter(w => w !== correctAnswer);
+
+            shuffleArray(uniqueSource);
+            
+            // Take 3 wrong answers
+            options = options.concat(uniqueSource.slice(0, 3));
+            shuffleArray(options);
+            return options;
+        }
+
+        // --- GAME LOGIC ---
+        function loadQuestion() {
+            canClick = true;
+            const qData = gameQueue[currentIndex];
+            
+            document.getElementById('progress-text').innerText = `Question ${currentIndex + 1} / ${gameQueue.length}`;
+            document.getElementById('score-text').innerText = `Score: ${score}`;
+            document.getElementById('question-text').innerText = qData.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            qData.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(btn, opt, qData.answer, qData.question);
+                container.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(btn, selected, correct, questionText) {
+            if (!canClick) return;
+            canClick = false;
+
+            const allBtns = document.querySelectorAll('.option-btn');
+
+            if (selected === correct) {
+                score++;
+                btn.classList.add('correct');
+            } else {
+                btn.classList.add('wrong');
+                // Highlight correct one
+                allBtns.forEach(b => {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+                // Record mistake
+                mistakes.push({ q: questionText, wrong: selected, correct: correct });
+            }
+
+            // Update Score Display immediately
+            document.getElementById('score-text').innerText = `Score: ${score}`;
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < gameQueue.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1200); // 1.2s delay
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const total = gameQueue.length;
+            const percentage = Math.round((score / total) * 100);
+            
+            document.getElementById('final-score').innerText = `${score} / ${total} (${percentage}%)`;
+
+            let msg = "";
+            if (percentage === 100) msg = "Perfect! Amazing Job! 🌟";
+            else if (percentage >= 80) msg = "Excellent work! 🎉";
+            else if (percentage >= 60) msg = "Good pass! Keep it up. 👍";
+            else msg = "Keep practicing! You can do it. 💪";
+            document.getElementById('final-msg').innerText = msg;
+
+            // Mistakes
+            const mistakeContainer = document.getElementById('mistakes-container');
+            const list = document.getElementById('mistakes-list');
+            list.innerHTML = '';
+
+            if (mistakes.length > 0) {
+                mistakeContainer.classList.remove('hidden');
+                mistakes.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'mistake-item';
+                    div.innerHTML = `
+                        <div class="mistake-q">${m.q}</div>
+                        <div>You chose: <span class="mistake-wrong">${m.wrong}</span></div>
+                        <div>Correct answer: <span class="mistake-correct">${m.correct}</span></div>
+                    `;
+                    list.appendChild(div);
+                });
+            } else {
+                mistakeContainer.classList.add('hidden');
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+        }
+
+        // --- UTILS ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+    </script>
+</body>
+</html>
