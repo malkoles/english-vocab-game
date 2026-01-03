@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Vocab Challenge</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Home Button */
+        .home-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            text-decoration: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .home-btn:hover {
+            background-color: #45a049;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Card Style */
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        /* Settings (Start Screen) */
+        .settings-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .settings-group h3 {
+            margin-bottom: 10px;
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .checkbox-label input {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-option {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+        .btn-option:hover {
+            background-color: #e2e6ea;
+            border-color: #adb5bd;
+        }
+
+        /* Quiz Interface */
+        .progress {
+            margin-bottom: 15px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .question-word {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0 30px 0;
+        }
+
+        /* Results */
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 20px 0;
+        }
+        .review-list {
+            text-align: left;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .review-item {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .review-word {
+            font-weight: bold;
+            color: #c0392b;
+        }
+        .review-correct {
+            color: #27ae60;
+            font-size: 14px;
+        }
+        .review-wrong {
+            color: #7f8c8d;
+            text-decoration: line-through;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #34495e;
+            color: #ecf0f1;
+            font-size: 14px;
+            margin-top: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="https://game.kelegulu.com" class="home-btn">Home</a>
+
+    <div class="container">
+        
+        <div id="start-screen" class="card">
+            <h1>History Vocab Challenge</h1>
+            
+            <div class="settings-group">
+                <h3>Select Topics (多選)</h3>
+                <div id="topic-container" class="checkbox-grid">
+                    </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Number of Questions</h3>
+                <div class="radio-group">
+                    <label class="checkbox-label"><input type="radio" name="qCount" value="10" checked> 10 題</label>
+                    <label class="checkbox-label"><input type="radio" name="qCount" value="15"> 15 題</label>
+                    <label class="checkbox-label"><input type="radio" name="qCount" value="20"> 20 題</label>
+                    <label class="checkbox-label"><input type="radio" name="qCount" value="30"> 30 題</label>
+                    <label class="checkbox-label"><input type="radio" name="qCount" value="50"> 50 題</label>
+                </div>
+            </div>
+
+            <button class="btn" onclick="startGame()">Start Game</button>
+        </div>
+
+        <div id="quiz-screen" class="card hidden">
+            <div class="progress" id="progress-text">Question 1 of 10</div>
+            <div class="question-word" id="question-text">Vocabulary</div>
+            <div id="options-container">
+                </div>
+        </div>
+
+        <div id="result-screen" class="card hidden">
+            <h1>Game Over!</h1>
+            <div>Your Score:</div>
+            <div class="score-display" id="final-score">0 / 0</div>
+            
+            <div id="review-container" class="hidden">
+                <h3>錯題檢討 (Review)</h3>
+                <div class="review-list" id="review-list">
+                    </div>
+            </div>
+
+            <button class="btn" onclick="resetGame()">Replay 重玩</button>
+        </div>
+
+    </div>
+
+    <footer>
+        Designed by KL思考研究室
+    </footer>
+
+    <script>
+        // Data from your spreadsheet
+        const rawData = [
+            {topic: "Greece", vocab: "Aegean Region", answer: "愛琴海地區"},
+            {topic: "Greece", vocab: "Asia Minor", answer: "小亞細亞"},
+            {topic: "Greece", vocab: "Crete", answer: "克里特島"},
+            {topic: "Greece", vocab: "Peloponnese", answer: "伯羅奔尼撒半島"},
+            {topic: "Greece", vocab: "The Greek Peninsula", answer: "希臘半島"},
+            {topic: "Greece", vocab: "Aegean Islands", answer: "愛琴海群島"},
+            {topic: "Greece", vocab: "Peninsula", answer: "半島"},
+            {topic: "Greece", vocab: "Minoan Civilization", answer: "米諾斯文明"},
+            {topic: "Greece", vocab: "Mycenaean Civilization", answer: "邁錫尼文明"},
+            {topic: "Greece", vocab: "Athens", answer: "雅典 (city)"},
+            {topic: "Greece", vocab: "Sparta", answer: "斯巴達 (city)"},
+            {topic: "Greece", vocab: "Marathon", answer: "馬拉松 (city)"},
+            {topic: "Greece", vocab: "Olympia", answer: "奧林匹亞(city)"},
+            {topic: "Greece", vocab: "Mycenae", answer: "邁錫尼(city)"},
+            {topic: "Greece", vocab: "Thebes", answer: "底比斯(city)"},
+            {topic: "Greece", vocab: "Corinth", answer: "科林斯 (city)"},
+            {topic: "Civilization", vocab: "Religion", answer: "宗教"},
+            {topic: "Civilization", vocab: "Fertile Crescent", answer: "肥沃月彎"},
+            {topic: "Civilization", vocab: "Nile Valley", answer: "尼羅河谷"},
+            {topic: "Civilization", vocab: "Indus Valley", answer: "印度河谷"},
+            {topic: "Civilization", vocab: "Huanghe Valley", answer: "黃河谷"},
+            {topic: "Civilization", vocab: "Climate", answer: "氣候"},
+            {topic: "Civilization", vocab: "River as channels", answer: "河流作為渠道"},
+            {topic: "Civilization", vocab: "Lower course", answer: "下游"},
+            {topic: "Civilization", vocab: "Upper course", answer: "上游"},
+            {topic: "Civilization", vocab: "Thebes", answer: "底比斯"},
+            {topic: "Civilization", vocab: "Memphis", answer: "孟菲斯"},
+            {topic: "Civilization", vocab: "Giza", answer: "吉薩"},
+            {topic: "Civilization", vocab: "Rosette", answer: "羅塞塔"},
+            {topic: "Civilization", vocab: "The Mediterranean Sea", answer: "地中海"},
+            {topic: "Civilization", vocab: "Canals", answer: "運河"},
+            {topic: "Civilization", vocab: "Fertile", answer: "肥沃"},
+            {topic: "Egypt", vocab: "The Sahara", answer: "撒哈拉沙漠"},
+            {topic: "Egypt", vocab: "Pharaoh", answer: "法老"},
+            {topic: "Egypt", vocab: "Ministers", answer: "大臣"},
+            {topic: "Egypt", vocab: "Priests", answer: "祭司"},
+            {topic: "Egypt", vocab: "Officials", answer: "官員"},
+            {topic: "Egypt", vocab: "Scribes", answer: "抄寫員"},
+            {topic: "Egypt", vocab: "Craftsmen", answer: "工匠"},
+            {topic: "Egypt", vocab: "Merchants", answer: "商人"},
+            {topic: "Egypt", vocab: "Peasants", answer: "農民"},
+            {topic: "Egypt", vocab: "Criminals", answer: "罪犯"},
+            {topic: "Egypt", vocab: "Prisoners of war", answer: "戰俘"},
+            {topic: "Egypt", vocab: "Pyramid of Khufu", answer: "胡夫金字塔"},
+            {topic: "Egypt", vocab: "Plough", answer: "犁"},
+            {topic: "Egypt", vocab: "Waterway", answer: "水道"},
+            {topic: "Egypt", vocab: "Shaduf", answer: "桑德夫 (或 沙斗)"},
+            {topic: "Egypt", vocab: "coffin", answer: "棺材;靈柩"},
+            {topic: "Egypt", vocab: "Mummy", answer: "木乃依"},
+            {topic: "Egypt", vocab: "organs", answer: "器官"},
+            {topic: "Egypt", vocab: "kidneys", answer: "腎"},
+            {topic: "General", vocab: "standards", answer: "標準"},
+            {topic: "General", vocab: "constructed", answer: "建設"},
+            {topic: "General", vocab: "transport", answer: "運輸"},
+            {topic: "General", vocab: "exchange", answer: "交換"},
+            {topic: "General", vocab: "trade", answer: "交易/貿易"},
+            {topic: "General", vocab: "surrounded", answer: "環繞"},
+            {topic: "General", vocab: "Connected", answer: "連接"},
+            {topic: "Stone-Age", vocab: "Ape-man", answer: "猿人"},
+            {topic: "Stone-Age", vocab: "Brain", answer: "腦"},
+            {topic: "Stone-Age", vocab: "Pre-historic Times", answer: "史前時代"},
+            {topic: "Stone-Age", vocab: "Old Stone Age", answer: "舊石器時代"},
+            {topic: "Stone-Age", vocab: "Homo sapiens", answer: "智人"},
+            {topic: "Stone-Age", vocab: "Chipping", answer: "敲打 / 鑿"},
+            {topic: "Stone-Age", vocab: "Friction", answer: "摩擦"},
+            {topic: "Stone-Age", vocab: "Cave paintings", answer: "洞穴壁畫"},
+            {topic: "Stone-Age", vocab: "Middle Stone Age", answer: "中石器時代"},
+            {topic: "Stone-Age", vocab: "Fishing Hook", answer: "魚鉤"},
+            {topic: "Stone-Age", vocab: "Raising Livestock", answer: "飼養家畜"},
+            {topic: "Stone-Age", vocab: "New Stone Age", answer: "新石器時代"},
+            {topic: "Stone-Age", vocab: "Pottery", answer: "陶器"},
+            {topic: "Stone-Age", vocab: "Weaving", answer: "編織"},
+            {topic: "Stone-Age", vocab: "Sowing", answer: "播種"},
+            {topic: "Stone-Age", vocab: "Fertilize", answer: "施肥"},
+            {topic: "Stone-Age", vocab: "Agriculture", answer: "農業"},
+            {topic: "Stone-Age", vocab: "Specialization", answer: "專業分工"},
+            {topic: "Stone-Age", vocab: "Primitive society", answer: "原始社會"},
+            {topic: "Stone-Age", vocab: "Civilization", answer: "文明"},
+            {topic: "Stone-Age", vocab: "Nomads / Gatherers", answer: "遊牧者 / 採集者"},
+            {topic: "Introduction", vocab: "History", answer: "歷史 / 歷史學"},
+            {topic: "Introduction", vocab: "Historical", answer: "歷史的"},
+            {topic: "Introduction", vocab: "Historic", answer: "歷史上有重大意義的"},
+            {topic: "Introduction", vocab: "Record", answer: "記錄 / 記載"},
+            {topic: "Introduction", vocab: "Figure", answer: "人物"},
+            {topic: "Introduction", vocab: "Evidence / Proof", answer: "證據 / 證明"},
+            {topic: "Introduction", vocab: "Historical Source", answer: "歷史資料（史料）"},
+            {topic: "Introduction", vocab: "Historian", answer: "史學家"},
+            {topic: "Introduction", vocab: "Tradition", answer: "傳統"},
+            {topic: "Introduction", vocab: "Transformation", answer: "變革"},
+            {topic: "Introduction", vocab: "Change", answer: "轉變"},
+            {topic: "Introduction", vocab: "Continuity", answer: "延續"},
+            {topic: "Introduction", vocab: "Causality / Causation", answer: "因果關係"},
+            {topic: "Introduction", vocab: "Background", answer: "背景"},
+            {topic: "Introduction", vocab: "Cause / Reason / Factor", answer: "起因 / 原因 / 因素"},
+            {topic: "Introduction", vocab: "Outbreak", answer: "爆發"},
+            {topic: "Introduction", vocab: "Result / Outcome", answer: "結果"},
+            {topic: "Introduction", vocab: "Effect / Impact / Influence", answer: "影響"},
+            {topic: "Introduction", vocab: "Values / Attitudes", answer: "價值 / 態度"},
+            {topic: "Introduction", vocab: "Common good", answer: "公眾利益"},
+            {topic: "Introduction", vocab: "Sense of belonging", answer: "歸屬感"},
+            {topic: "Introduction", vocab: "Origin", answer: "起源 / 來源"},
+            {topic: "Introduction", vocab: "Development", answer: "發展"},
+            {topic: "Introduction", vocab: "Empathy", answer: "同理心"},
+            {topic: "Introduction", vocab: "Contribution", answer: "貢獻"},
+            {topic: "Introduction", vocab: "National Identity", answer: "國民身份"},
+            {topic: "Introduction", vocab: "Custom / Habit", answer: "習俗 / 慣例"},
+            {topic: "Introduction", vocab: "Conflict", answer: "衝突"},
+            {topic: "Introduction", vocab: "Sense of Responsibility", answer: "責任感"},
+            {topic: "Introduction", vocab: "Global Citizenship", answer: "全球公民身份"},
+            {topic: "Introduction", vocab: "Decade", answer: "十年（年代）"},
+            {topic: "Introduction", vocab: "Century", answer: "百年（世紀）"},
+            {topic: "Introduction", vocab: "Millennium", answer: "千年 / 千禧"},
+            {topic: "Introduction", vocab: "Chronology", answer: "編年 / 年表"},
+            {topic: "Introduction", vocab: "Gregorian Calendar", answer: "格里曆（公曆）"},
+            {topic: "Introduction", vocab: "Christianity", answer: "基督教"},
+            {topic: "Introduction", vocab: "Jesus Christ", answer: "耶穌"},
+            {topic: "Introduction", vocab: "Pre-history / Pre-historic Times", answer: "史前時期"},
+            {topic: "Introduction", vocab: "Historic Times / History of Civilization", answer: "信史時期"},
+            {topic: "Introduction", vocab: "Stone Age", answer: "石器時代"},
+            {topic: "Introduction", vocab: "Ancient Times", answer: "古代"},
+            {topic: "Introduction", vocab: "Medieval Times / Middle Ages", answer: "中世紀"},
+            {topic: "Introduction", vocab: "Modern Times", answer: "現代"},
+            {topic: "Introduction", vocab: "Contemporary Times", answer: "當代"}
+        ];
+
+        // Clean data (remove leading "- " or spaces)
+        rawData.forEach(item => {
+            item.answer = item.answer.replace(/^-\s*/, '').trim();
+            item.vocab = item.vocab.trim();
+        });
+
+        // Game State
+        let gameQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let wrongAnswers = [];
+
+        // Initialize Start Screen
+        function init() {
+            const topicContainer = document.getElementById('topic-container');
+            const uniqueTopics = [...new Set(rawData.map(item => item.topic))];
+            
+            uniqueTopics.forEach(topic => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-label';
+                label.innerHTML = `<input type="checkbox" value="${topic}" checked> ${topic}`;
+                topicContainer.appendChild(label);
+            });
+        }
+
+        function startGame() {
+            // Get selected topics
+            const selectedCheckboxes = document.querySelectorAll('#topic-container input:checked');
+            const selectedTopics = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+            if (selectedTopics.length === 0) {
+                alert("Please select at least one topic!");
+                return;
+            }
+
+            // Filter questions
+            let pool = rawData.filter(item => selectedTopics.includes(item.topic));
+            
+            // Get question count
+            const countRadio = document.querySelector('input[name="qCount"]:checked');
+            const maxQuestions = parseInt(countRadio.value);
+
+            // Shuffle and slice
+            pool.sort(() => Math.random() - 0.5);
+            gameQuestions = pool.slice(0, maxQuestions);
+
+            if (gameQuestions.length === 0) {
+                alert("No questions found for selected topics.");
+                return;
+            }
+
+            // Reset state
+            currentQuestionIndex = 0;
+            score = 0;
+            wrongAnswers = [];
+
+            // UI Switch
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentQ = gameQuestions[currentQuestionIndex];
+            
+            // Update UI text
+            document.getElementById('progress-text').innerText = `Question ${currentQuestionIndex + 1} of ${gameQuestions.length}`;
+            document.getElementById('question-text').innerText = currentQ.vocab;
+
+            // Generate Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            // 1 Correct + 3 Wrong
+            let options = [currentQ.answer];
+            
+            // Get distractors (try to get from same topic first, or global)
+            let distractors = rawData.filter(item => item.answer !== currentQ.answer);
+            distractors.sort(() => Math.random() - 0.5);
+            
+            // Push 3 distractors
+            for(let i=0; i<3; i++) {
+                if (distractors[i]) options.push(distractors[i].answer);
+            }
+
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt, currentQ);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selected, currentQ) {
+            if (selected === currentQ.answer) {
+                score++;
+            } else {
+                wrongAnswers.push({
+                    vocab: currentQ.vocab,
+                    correct: currentQ.answer,
+                    selected: selected
+                });
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < gameQuestions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            document.getElementById('final-score').innerText = `${score} / ${gameQuestions.length}`;
+            
+            const reviewContainer = document.getElementById('review-container');
+            const reviewList = document.getElementById('review-list');
+            reviewList.innerHTML = '';
+
+            if (wrongAnswers.length > 0) {
+                reviewContainer.classList.remove('hidden');
+                wrongAnswers.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'review-item';
+                    div.innerHTML = `
+                        <div class="review-word">${item.vocab}</div>
+                        <div class="review-wrong">Your answer: ${item.selected}</div>
+                        <div class="review-correct">Correct: ${item.correct}</div>
+                    `;
+                    reviewList.appendChild(div);
+                });
+            } else {
+                reviewContainer.classList.add('hidden');
+                reviewList.innerHTML = '<div style="text-align:center; color:green;">Perfect Score! Well done!</div>';
+                reviewContainer.classList.remove('hidden');
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        // Run init
+        init();
+
+    </script>
+</body>
+</html>
