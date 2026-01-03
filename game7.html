@@ -28,6 +28,7 @@
             font-size: 14px;
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
         }
         .home-btn:hover {
             background-color: #45a049;
@@ -61,6 +62,7 @@
             width: 100%;
             max-width: 600px;
             text-align: center;
+            position: relative;
         }
 
         /* Settings (Start Screen) */
@@ -111,6 +113,8 @@
         .btn:hover {
             background-color: #2980b9;
         }
+        
+        /* Option Buttons */
         .btn-option {
             display: block;
             width: 100%;
@@ -120,10 +124,28 @@
             background-color: #f8f9fa;
             color: #333;
             border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .btn-option:hover {
+        .btn-option:hover:not(.disabled) {
             background-color: #e2e6ea;
             border-color: #adb5bd;
+        }
+
+        /* Correct/Wrong Styles */
+        .btn-option.correct {
+            background-color: #2ecc71 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
+        .btn-option.wrong {
+            background-color: #e74c3c !important;
+            color: white !important;
+            border-color: #c0392b !important;
+        }
+        .disabled {
+            pointer-events: none;
         }
 
         /* Quiz Interface */
@@ -372,7 +394,7 @@
             {topic: "Introduction", vocab: "Contemporary Times", answer: "當代"}
         ];
 
-        // Clean data (remove leading "- " or spaces)
+        // Clean data
         rawData.forEach(item => {
             item.answer = item.answer.replace(/^-\s*/, '').trim();
             item.vocab = item.vocab.trim();
@@ -383,8 +405,8 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let wrongAnswers = [];
+        let isProcessing = false; // To prevent multiple clicks
 
-        // Initialize Start Screen
         function init() {
             const topicContainer = document.getElementById('topic-container');
             const uniqueTopics = [...new Set(rawData.map(item => item.topic))];
@@ -398,7 +420,6 @@
         }
 
         function startGame() {
-            // Get selected topics
             const selectedCheckboxes = document.querySelectorAll('#topic-container input:checked');
             const selectedTopics = Array.from(selectedCheckboxes).map(cb => cb.value);
 
@@ -407,28 +428,24 @@
                 return;
             }
 
-            // Filter questions
             let pool = rawData.filter(item => selectedTopics.includes(item.topic));
             
-            // Get question count
             const countRadio = document.querySelector('input[name="qCount"]:checked');
             const maxQuestions = parseInt(countRadio.value);
 
-            // Shuffle and slice
             pool.sort(() => Math.random() - 0.5);
             gameQuestions = pool.slice(0, maxQuestions);
 
             if (gameQuestions.length === 0) {
-                alert("No questions found for selected topics.");
+                alert("No questions found.");
                 return;
             }
 
-            // Reset state
             currentQuestionIndex = 0;
             score = 0;
             wrongAnswers = [];
+            isProcessing = false;
 
-            // UI Switch
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
@@ -437,57 +454,75 @@
         }
 
         function loadQuestion() {
+            isProcessing = false;
             const currentQ = gameQuestions[currentQuestionIndex];
             
-            // Update UI text
             document.getElementById('progress-text').innerText = `Question ${currentQuestionIndex + 1} of ${gameQuestions.length}`;
             document.getElementById('question-text').innerText = currentQ.vocab;
 
-            // Generate Options
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
+            optionsContainer.classList.remove('disabled');
 
-            // 1 Correct + 3 Wrong
             let options = [currentQ.answer];
-            
-            // Get distractors (try to get from same topic first, or global)
             let distractors = rawData.filter(item => item.answer !== currentQ.answer);
             distractors.sort(() => Math.random() - 0.5);
             
-            // Push 3 distractors
             for(let i=0; i<3; i++) {
                 if (distractors[i]) options.push(distractors[i].answer);
             }
 
-            // Shuffle options
             options.sort(() => Math.random() - 0.5);
 
             options.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'btn-option';
                 btn.innerText = opt;
-                btn.onclick = () => handleAnswer(opt, currentQ);
+                btn.onclick = (e) => handleAnswer(e.target, opt, currentQ);
                 optionsContainer.appendChild(btn);
             });
         }
 
-        function handleAnswer(selected, currentQ) {
-            if (selected === currentQ.answer) {
+        function handleAnswer(btnElement, selectedAnswer, currentQ) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.classList.add('disabled'); // Block all clicks
+            
+            const allBtns = optionsContainer.querySelectorAll('.btn-option');
+            const isCorrect = (selectedAnswer === currentQ.answer);
+
+            if (isCorrect) {
+                // Correct Logic
+                btnElement.classList.add('correct');
                 score++;
             } else {
+                // Wrong Logic
+                btnElement.classList.add('wrong');
                 wrongAnswers.push({
                     vocab: currentQ.vocab,
                     correct: currentQ.answer,
-                    selected: selected
+                    selected: selectedAnswer
+                });
+
+                // Highlight the correct answer for learning
+                allBtns.forEach(b => {
+                    if (b.innerText === currentQ.answer) {
+                        b.classList.add('correct');
+                    }
                 });
             }
 
-            currentQuestionIndex++;
-            if (currentQuestionIndex < gameQuestions.length) {
-                loadQuestion();
-            } else {
-                showResults();
-            }
+            // Wait 1.5 seconds before moving to next question
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < gameQuestions.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1500);
         }
 
         function showResults() {
@@ -524,7 +559,6 @@
             document.getElementById('start-screen').classList.remove('hidden');
         }
 
-        // Run init
         init();
 
     </script>
